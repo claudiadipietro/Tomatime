@@ -9,7 +9,8 @@ var postgresPassword = builder.AddParameter("postgres-password", secret: true);
 
 var postgres = builder
 	.AddPostgres("postgres", password: postgresPassword)
-	.WithDataVolume("tomatime-postgres-data");
+	.WithDataVolume("tomatime-postgres-data")
+	.WithPgAdmin(pgAdmin => pgAdmin.WithHostPort(5050));
 
 var database = postgres.AddDatabase("tomatime");
 
