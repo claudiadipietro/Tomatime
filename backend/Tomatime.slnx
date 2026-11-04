@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Tomatime.Api/Tomatime.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Tomatime.Api.Tests/Tomatime.Api.Tests.csproj" />
+  </Folder>
+  <Project Path="AppHost/AppHost.csproj" />
+</Solution>

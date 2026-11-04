@@ -1,0 +1,6 @@
+@tomatimeApi_HostAddress = http://localhost:5197
+
+GET {{tomatimeApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,6 +1,12 @@
-using backend.Services;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Tomatime.Api.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
+    containerBuilder.RegisterModule(new DependencyInjectionModule(builder.Configuration)));
 
 // Add services to the container.
 builder.Services.AddOpenApi();
@@ -20,8 +26,6 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-
-builder.Services.AddScoped<IHealthService, HealthService>();
 
 var app = builder.Build();
 
