@@ -22,6 +22,38 @@ namespace Tomatime.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Tomatime.Api.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
                 {
                     b.Property<int>("Id")
@@ -113,19 +145,23 @@ namespace Tomatime.Api.Migrations
 
                     b.Property<string>("CurrentTheme")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<int>("PomoBalance")
                         .HasColumnType("integer");
@@ -135,7 +171,10 @@ namespace Tomatime.Api.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Users_PomoBalance_NonNegative", "\"PomoBalance\" >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.UserReward", b =>
@@ -160,6 +199,17 @@ namespace Tomatime.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("UserRewards");
+                });
+
+            modelBuilder.Entity("Tomatime.Api.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("Tomatime.Api.Models.User", "User")
+                        .WithMany("PasswordResetTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
@@ -214,6 +264,8 @@ namespace Tomatime.Api.Migrations
 
             modelBuilder.Entity("Tomatime.Api.Models.User", b =>
                 {
+                    b.Navigation("PasswordResetTokens");
+
                     b.Navigation("Sessions");
 
                     b.Navigation("UserRewards");
