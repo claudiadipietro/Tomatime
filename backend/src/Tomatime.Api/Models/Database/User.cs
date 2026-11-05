@@ -44,4 +44,9 @@ public class User
     /// Gets or sets the collection of user rewards associated with the user.
     /// </summary>
     public ICollection<UserReward> UserRewards { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the collection of password reset tokens associated with the user.
+    /// </summary>
+    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = [];
 }

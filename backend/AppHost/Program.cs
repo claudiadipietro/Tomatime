@@ -17,6 +17,7 @@ var database = postgres.AddDatabase("tomatime");
 builder
 	.AddProject<Projects.Tomatime_Api>("tomatime-api")
 	.WithReference(database)
+	.WithEnvironment("ASPNETCORE_ENVIRONMENT", "Development")
 	.WaitFor(database);
 
 builder.Build().Run();
