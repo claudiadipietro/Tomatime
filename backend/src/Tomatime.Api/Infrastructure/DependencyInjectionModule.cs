@@ -1,6 +1,8 @@
 using Autofac;
+using Microsoft.AspNetCore.Identity;
 using Tomatime.Api.Context;
 using Tomatime.Api.Services;
+using Tomatime.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Tomatime.Api.Infrastructure;
@@ -11,6 +13,22 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
     {
         builder.RegisterGeneric(typeof(Repository<>))
             .As(typeof(IRepository<>))
+            .InstancePerLifetimeScope();
+
+        builder.RegisterType<UserDatabaseService>()
+            .As<IUserDatabaseService>()
+            .InstancePerLifetimeScope();
+
+        builder.RegisterType<PasswordHasher<User>>()
+            .As<IPasswordHasher<User>>()
+            .SingleInstance();
+
+        builder.RegisterType<AuthService>()
+            .As<IAuthService>()
+            .InstancePerLifetimeScope();
+
+        builder.RegisterType<PasswordResetEmailSender>()
+            .As<IPasswordResetEmailSender>()
             .InstancePerLifetimeScope();
 
         builder.Register(context =>
