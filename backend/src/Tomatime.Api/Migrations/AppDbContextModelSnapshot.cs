@@ -236,13 +236,13 @@ namespace Tomatime.Api.Migrations
             modelBuilder.Entity("Tomatime.Api.Models.UserReward", b =>
                 {
                     b.HasOne("Tomatime.Api.Models.Reward", "Reward")
-                        .WithMany("UserRewards")
+                        .WithMany()
                         .HasForeignKey("RewardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Tomatime.Api.Models.User", "User")
-                        .WithMany("UserRewards")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -250,11 +250,6 @@ namespace Tomatime.Api.Migrations
                     b.Navigation("Reward");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
-                {
-                    b.Navigation("UserRewards");
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.Theme", b =>
@@ -267,8 +262,6 @@ namespace Tomatime.Api.Migrations
                     b.Navigation("PasswordResetTokens");
 
                     b.Navigation("Sessions");
-
-                    b.Navigation("UserRewards");
                 });
 #pragma warning restore 612, 618
         }

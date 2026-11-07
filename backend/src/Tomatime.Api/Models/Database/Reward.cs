@@ -40,8 +40,4 @@ public class Reward
     /// </summary>
     public Theme? Theme { get; set; }
 
-    /// <summary>
-    /// Gets or sets the collection of user rewards associated with the reward.
-    /// </summary>
-    public ICollection<UserReward> UserRewards { get; set; } = [];
 }

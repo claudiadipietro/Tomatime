@@ -6,4 +6,6 @@ public interface IAuthService
 {
     Task<AuthResponse?> SignupAsync(SignupRequest request);
     Task<AuthResponse?> LoginAsync(LoginRequest request);
+    Task RequestPasswordResetAsync(ForgotPasswordRequest request);
+    Task<bool> ResetPasswordAsync(ResetPasswordRequest request);
 }

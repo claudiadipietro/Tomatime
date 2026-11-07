@@ -31,6 +31,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
             .As<IPasswordResetEmailSender>()
             .InstancePerLifetimeScope();
 
+        builder.RegisterType<RewardDatabaseService>()
+            .As<IRewardDatabaseService>()
+            .InstancePerLifetimeScope();
+
         builder.Register(context =>
             {
                 var connectionString = configuration.GetConnectionString("tomatime")
