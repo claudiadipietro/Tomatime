@@ -35,13 +35,4 @@ public class User
     /// </summary>
     public string CurrentTheme { get; set; } = "default";
 
-    /// <summary>
-    /// Gets or sets the collection of sessions associated with the user.
-    /// </summary>
-    public ICollection<Session> Sessions { get; set; } = [];
-
-    /// <summary>
-    /// Gets or sets the collection of password reset tokens associated with the user.
-    /// </summary>
-    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = [];
 }

@@ -34,8 +34,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.Property(reward => reward.Description).IsRequired();
 			entity.Property(reward => reward.Type).HasConversion<string>();
 
-			entity.HasOne(reward => reward.Theme)
-				.WithMany(theme => theme.Rewards)
+			entity.HasOne<Theme>()
+				.WithMany()
 				.HasForeignKey(reward => reward.ThemeId)
 				.OnDelete(DeleteBehavior.Restrict);
 		});
@@ -45,8 +45,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.HasKey(session => session.Id);
 			entity.Property(session => session.Status).HasConversion<string>();
 
-			entity.HasOne(session => session.User)
-				.WithMany(user => user.Sessions)
+			entity.HasOne<User>()
+				.WithMany()
 				.HasForeignKey(session => session.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 		});
@@ -57,12 +57,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.HasIndex(userReward => new { userReward.UserId, userReward.RewardId })
 				.IsUnique();
 
-			entity.HasOne(userReward => userReward.User)
+			entity.HasOne<User>()
 				.WithMany()
 				.HasForeignKey(userReward => userReward.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
-			entity.HasOne(userReward => userReward.Reward)
+			entity.HasOne<Reward>()
 				.WithMany()
 				.HasForeignKey(userReward => userReward.RewardId)
 				.OnDelete(DeleteBehavior.Cascade);
@@ -74,8 +74,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.HasIndex(token => token.TokenHash).IsUnique();
 			entity.Property(token => token.TokenHash).HasMaxLength(128).IsRequired();
 
-			entity.HasOne(token => token.User)
-				.WithMany(user => user.PasswordResetTokens)
+			entity.HasOne<User>()
+				.WithMany()
 				.HasForeignKey(token => token.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 		});

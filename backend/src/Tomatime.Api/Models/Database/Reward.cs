@@ -35,9 +35,4 @@ public class Reward
     /// </summary>
     public int? ThemeId { get; set; }
 
-    /// <summary>
-    /// Gets or sets the theme associated with the reward, if applicable.
-    /// </summary>
-    public Theme? Theme { get; set; }
-
 }

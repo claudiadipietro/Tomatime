@@ -27,8 +27,4 @@ public sealed class PasswordResetToken
     /// </summary>
     public DateTimeOffset? UsedAt { get; set; }
 
-    /// <summary>
-    /// Gets or sets the user associated with the password reset token.
-    /// </summary>
-    public User User { get; set; } = null!;
 }

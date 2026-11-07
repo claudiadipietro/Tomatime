@@ -15,8 +15,4 @@ public class Theme
     /// </summary>
     public string Name { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Gets or sets the collection of rewards associated with the theme.
-    /// </summary>
-    public ICollection<Reward> Rewards { get; set; } = [];
 }
