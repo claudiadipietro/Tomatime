@@ -58,12 +58,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 				.IsUnique();
 
 			entity.HasOne(userReward => userReward.User)
-				.WithMany(user => user.UserRewards)
+				.WithMany()
 				.HasForeignKey(userReward => userReward.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
 
 			entity.HasOne(userReward => userReward.Reward)
-				.WithMany(reward => reward.UserRewards)
+				.WithMany()
 				.HasForeignKey(userReward => userReward.RewardId)
 				.OnDelete(DeleteBehavior.Cascade);
 		});

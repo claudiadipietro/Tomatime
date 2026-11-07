@@ -24,6 +24,12 @@ public sealed class UserDatabaseService : IUserDatabaseService
 
     public async Task<User?> CreateUserAsync(User user)
     {
+        User? existingUser = await GetUserByEmailAsync(user.Email);
+        if (existingUser != null)
+        {
+            return null;
+        }
+
         await _repository.AddAsync(user);
         await _repository.SaveChangesAsync();
         return user;
@@ -31,7 +37,7 @@ public sealed class UserDatabaseService : IUserDatabaseService
 
     public async Task<User?> UpdateUserAsync(User user)
     {
-        var existingUser = await _repository.GetByIdAsync(user.Id);
+        User? existingUser = await _repository.GetByIdAsync(user.Id);
 
         if (existingUser is null)
         {
@@ -50,7 +56,7 @@ public sealed class UserDatabaseService : IUserDatabaseService
 
     public async Task<bool> DeleteUserAsync(int userId)
     {
-        var user = await _repository.GetByIdAsync(userId);
+        User? user = await _repository.GetByIdAsync(userId);
 
         if (user is null)
         {
