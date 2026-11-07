@@ -38,6 +38,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<SessionDatabaseService>()
             .As<ISessionDatabaseService>()
             .InstancePerLifetimeScope();
+        
+        builder.RegisterType<ThemeDatabaseService>()
+            .As<IThemeDatabaseService>()
+            .InstancePerLifetimeScope();
 
         builder.Register(context =>
             {
