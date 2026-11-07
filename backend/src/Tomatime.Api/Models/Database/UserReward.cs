@@ -20,13 +20,4 @@ public class UserReward
     /// </summary>
     public int RewardId { get; set; }
 
-    /// <summary>
-    /// Gets or sets the user associated with the user reward.
-    /// </summary>
-    public User User { get; set; } = null!;
-
-    /// <summary>
-    /// Gets or sets the reward associated with the user reward.
-    /// </summary>
-    public Reward Reward { get; set; } = null!;
 }

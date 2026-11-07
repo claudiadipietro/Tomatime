@@ -49,7 +49,7 @@ public sealed class AuthService: IAuthService
         {
             Name = request.Name.Trim(),
             Email = email,
-            CurrentTheme = "default",
+            CurrentTheme = "default", // TODO: Change from hardcoded value to enum
         };
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 

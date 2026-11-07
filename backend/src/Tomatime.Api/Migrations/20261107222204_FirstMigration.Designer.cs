@@ -12,8 +12,8 @@ using Tomatime.Api.Context;
 namespace Tomatime.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261105220704_CompleteUserModel")]
-    partial class CompleteUserModel
+    [Migration("20261107222204_FirstMigration")]
+    partial class FirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,38 @@ namespace Tomatime.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Tomatime.Api.Models.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetTokens");
+                });
 
             modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
                 {
@@ -65,6 +97,9 @@ namespace Tomatime.Api.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActualStartTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
@@ -172,61 +207,45 @@ namespace Tomatime.Api.Migrations
                     b.ToTable("UserRewards");
                 });
 
+            modelBuilder.Entity("Tomatime.Api.Models.PasswordResetToken", b =>
+                {
+                    b.HasOne("Tomatime.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
                 {
-                    b.HasOne("Tomatime.Api.Models.Theme", "Theme")
-                        .WithMany("Rewards")
+                    b.HasOne("Tomatime.Api.Models.Theme", null)
+                        .WithMany()
                         .HasForeignKey("ThemeId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Theme");
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.Session", b =>
                 {
-                    b.HasOne("Tomatime.Api.Models.User", "User")
-                        .WithMany("Sessions")
+                    b.HasOne("Tomatime.Api.Models.User", null)
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.UserReward", b =>
                 {
-                    b.HasOne("Tomatime.Api.Models.Reward", "Reward")
-                        .WithMany("UserRewards")
+                    b.HasOne("Tomatime.Api.Models.Reward", null)
+                        .WithMany()
                         .HasForeignKey("RewardId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Tomatime.Api.Models.User", "User")
-                        .WithMany("UserRewards")
+                    b.HasOne("Tomatime.Api.Models.User", null)
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Reward");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Tomatime.Api.Models.Reward", b =>
-                {
-                    b.Navigation("UserRewards");
-                });
-
-            modelBuilder.Entity("Tomatime.Api.Models.Theme", b =>
-                {
-                    b.Navigation("Rewards");
-                });
-
-            modelBuilder.Entity("Tomatime.Api.Models.User", b =>
-                {
-                    b.Navigation("Sessions");
-
-                    b.Navigation("UserRewards");
                 });
 #pragma warning restore 612, 618
         }

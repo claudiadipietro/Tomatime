@@ -21,6 +21,11 @@ public class Session
     public DateTime PlannedStartTime { get; set; }
 
     /// <summary>
+    /// Gets or sets the actual start time of the session, if applicable.
+    /// </summary>
+    public DateTime? ActualStartTime { get; set; }
+
+    /// <summary>
     /// Gets or sets the duration of the session.
     /// </summary>
     public int Duration { get; set; }
@@ -35,8 +40,4 @@ public class Session
     /// </summary>
     public int PomosEarned { get; set; }
 
-    /// <summary>
-    /// Gets or sets the user associated with the session.
-    /// </summary>
-    public User User { get; set; } = null!;
 }
