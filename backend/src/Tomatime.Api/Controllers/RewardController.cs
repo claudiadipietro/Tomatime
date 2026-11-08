@@ -9,10 +9,12 @@ namespace Tomatime.Api.Controllers;
 public class RewardController : ControllerBase
 {
     private readonly IRewardDatabaseService _rewardService;
+    private readonly IUserRewardDatabaseService _userRewardService;
 
-    public RewardController(IRewardDatabaseService rewardService)
+    public RewardController(IRewardDatabaseService rewardService, IUserRewardDatabaseService userRewardService)
     {
         _rewardService = rewardService;
+        _userRewardService = userRewardService;
     }
 
     [HttpGet("{rewardId}")]
@@ -44,5 +46,23 @@ public class RewardController : ControllerBase
     {
         var rewards = await _rewardService.GetAllRewardsAsync();
         return Ok(rewards);
+    }
+
+    [HttpPost("{rewardId}/redeem/{userId}")]
+    public async Task<IActionResult> RedeemReward(int rewardId, int userId)
+    {
+        var userReward = new UserReward
+        {
+            UserId = userId,
+            RewardId = rewardId
+        };
+
+        var createdUserReward = await _userRewardService.CreateUserRewardAsync(userReward);
+        if (createdUserReward == null)
+        {
+            return BadRequest("Failed to redeem reward.");
+        }
+
+        return Ok(createdUserReward);
     }
 }

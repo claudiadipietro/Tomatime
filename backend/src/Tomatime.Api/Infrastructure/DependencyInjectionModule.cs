@@ -43,6 +43,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
             .As<IThemeDatabaseService>()
             .InstancePerLifetimeScope();
 
+        builder.RegisterType<UserRewardDatabaseService>()
+            .As<IUserRewardDatabaseService>()
+            .InstancePerLifetimeScope();
+
         builder.Register(context =>
             {
                 var connectionString = configuration.GetConnectionString("tomatime")
