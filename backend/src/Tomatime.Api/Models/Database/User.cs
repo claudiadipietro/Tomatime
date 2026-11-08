@@ -35,4 +35,8 @@ public class User
     /// </summary>
     public string CurrentTheme { get; set; } = "default";
 
+    /// <summary>
+    /// Gets or sets a value indicating whether notifications are enabled for the user.
+    /// </summary>
+    public bool NotificationsEnabled { get; set; } = true;
 }

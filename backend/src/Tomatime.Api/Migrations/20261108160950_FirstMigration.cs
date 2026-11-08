@@ -35,7 +35,8 @@ namespace Tomatime.Api.Migrations
                     Email = table.Column<string>(type: "character varying(320)", maxLength: 320, nullable: false),
                     PasswordHash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     PomoBalance = table.Column<int>(type: "integer", nullable: false),
-                    CurrentTheme = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    CurrentTheme = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    NotificationsEnabled = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

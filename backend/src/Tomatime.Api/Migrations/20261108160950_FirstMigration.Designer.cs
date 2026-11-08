@@ -12,7 +12,7 @@ using Tomatime.Api.Context;
 namespace Tomatime.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261107222204_FirstMigration")]
+    [Migration("20261108160950_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -163,6 +163,9 @@ namespace Tomatime.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("NotificationsEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

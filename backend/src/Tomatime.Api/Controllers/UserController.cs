@@ -83,4 +83,34 @@ public class UserController : ControllerBase
         var userRewards = await _userRewardDatabaseService.GetUserRewardsByUserIdAsync(userId);
         return Ok(userRewards);
     }
+
+    [HttpGet("notifications/{userId}")]
+    public async Task<IActionResult> GetUserNotifications(int userId)
+    {
+        var user = await _userDatabaseService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        return Ok(user.NotificationsEnabled);
+    }
+
+    [HttpPut("notifications/{userId}")]
+    public async Task<IActionResult> UpdateUserNotifications(int userId, [FromBody] bool notificationsEnabled)
+    {
+        var user = await _userDatabaseService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        user.NotificationsEnabled = notificationsEnabled;
+        var updatedUser = await _userDatabaseService.UpdateUserAsync(user);
+        if (updatedUser == null)
+        {
+            return BadRequest("Failed to update user notifications.");
+        }
+
+        return Ok(updatedUser.NotificationsEnabled);
+    }
 }
