@@ -36,6 +36,24 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## Progressive Web App (PWA)
+
+The production build includes Angular's service worker and the web app manifest:
+
+- `public/manifest.webmanifest` defines the app name, standalone display mode, colors, and install icons.
+- `ngsw-config.json` defines which app files are cached for loading the application shell.
+- `src/app/app.config.ts` registers the service worker only outside development mode.
+
+The service worker caches the application shell and static assets; it does not cache API responses, which may contain user-specific data. This provides offline access to the shell and downloaded assets, but backend-dependent features still require a network connection.
+
+To try installation, build the production version and serve its output from HTTPS (or `localhost`). The service worker is intentionally disabled by `ng serve` in development.
+
+## Localization
+
+The app uses ngx-translate for runtime language switching. English (`en`) is the fallback language; the initial language follows the browser preference unless the user has already selected a language. The selection is saved in browser storage.
+
+Translation files are stored in `public/i18n/`. Add matching keys to both `en.json` and `es.json`, then use the key with the `translate` pipe in templates. The service worker pre-caches these files so the language selection remains available offline after the first successful load.
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
