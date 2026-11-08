@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "Tomatime",
+    "title": "Tomatime | Focus timer",
+    "description": "Tomatime helps you organize focused work sessions with the Pomodoro technique."
+  },
+  "language": {
+    "label": "Language"
+  },
+  "landing": {
+    "heading": "Welcome to Tomatime",
+    "description": "Your focus timer is ready to grow."
+  }
+}

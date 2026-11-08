@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+}
+
+.app-brand {
+  color: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.language-picker {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.language-picker select {
+  font: inherit;
+  padding: 0.4rem;
+}
+
+main {
+  padding: 1rem clamp(1rem, 4vw, 3rem);
+}

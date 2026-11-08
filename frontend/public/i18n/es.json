@@ -1,0 +1,14 @@
+{
+  "app": {
+    "name": "Tomatime",
+    "title": "Tomatime | Temporizador de concentración",
+    "description": "Tomatime te ayuda a organizar sesiones de concentración con la técnica Pomodoro."
+  },
+  "language": {
+    "label": "Idioma"
+  },
+  "landing": {
+    "heading": "Te damos la bienvenida a Tomatime",
+    "description": "Tu temporizador de concentración está listo."
+  }
+}

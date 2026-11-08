@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideTranslateService } from '@ngx-translate/core';
 import { LandingPageComponent } from './landing-page-component';
 
 describe('LandingPageComponent', () => {
@@ -8,6 +9,7 @@ describe('LandingPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LandingPageComponent],
+      providers: [provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LandingPageComponent);
