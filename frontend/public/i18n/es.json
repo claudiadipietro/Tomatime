@@ -8,7 +8,10 @@
     "label": "Idioma"
   },
   "landing": {
-    "heading": "Te damos la bienvenida a Tomatime",
-    "description": "Tu temporizador de concentración está listo."
+    "taglineFirst": "Organiza tu tiempo.",
+    "taglineSecond": "Concéntrate en lo importante.",
+    "signIn": "Iniciar sesión",
+    "registerPrompt": "¿Todavía no tienes una cuenta?",
+    "register": "Registrarse"
   }
 }

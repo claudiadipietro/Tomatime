@@ -1,17 +1,14 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from './i18n/language.service';
 
 @Component({
-  imports: [RouterLink, RouterOutlet, TranslatePipe],
+  imports: [RouterOutlet, TranslatePipe],
   selector: 'app-root',
   styleUrl: './app.css',
   template: `
     <header class="app-toolbar">
-      <a class="app-brand" routerLink="/" aria-label="Tomatime">
-        {{ 'app.name' | translate }}
-      </a>
       <div class="language-picker">
         <label for="language-select">{{ 'language.label' | translate }}</label>
         <select
