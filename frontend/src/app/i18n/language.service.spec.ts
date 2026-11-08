@@ -39,9 +39,9 @@ describe('LanguageService', () => {
     expect(languageService.currentLanguage()).toBe('es');
     expect(document.documentElement.lang).toBe('es');
     expect(document.title).toBe('Tomatime | Temporizador');
-    expect(
-      document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content,
-    ).toBe('Organiza tus sesiones de concentración.');
+    expect(document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content).toBe(
+      'Organiza tus sesiones de concentración.',
+    );
     expect(localStorage.getItem('tomatime.language')).toBe('es');
   });
 });

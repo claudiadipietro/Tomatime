@@ -12,6 +12,27 @@ ng serve
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
+The `npm start` script configures a development proxy for `/api` to `http://localhost:5197`; run the backend with its `http` launch profile when using the frontend auth forms.
+
+## Source structure
+
+Application code is organized under `src/app`, with components, models, and services in separate folders:
+
+```text
+src/app/
+  app.ts                 # Application shell
+  app.routes.ts          # Lazy-loaded routes
+  i18n/                  # Shared language selection
+  components/
+    landing-page-component/
+    login-component/
+    register-component/
+  models/                # Auth and user API models
+  services/              # Auth API, session storage, HTTP interceptor
+```
+
+Keep frontend components, models, and services in their respective folders under `src/app`. The .NET backend has its own independent model and service layers.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

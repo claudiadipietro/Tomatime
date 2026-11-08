@@ -13,5 +13,57 @@
     "signIn": "Sign in",
     "registerPrompt": "Don't have an account yet?",
     "register": "Create an account"
+  },
+  "auth": {
+    "backHome": "Back to Tomatime",
+    "fields": {
+      "name": "Name",
+      "email": "Email address",
+      "password": "Password",
+      "confirmPassword": "Confirm password"
+    },
+    "password": {
+      "show": "Show password",
+      "hide": "Hide password"
+    },
+    "login": {
+      "title": "Sign in",
+      "forgotPassword": "Forgot your password?",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "registerPrompt": "Don't have an account yet?",
+      "registerLink": "Create an account",
+      "success": "You are signed in."
+    },
+    "register": {
+      "title": "Create an account",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "loginPrompt": "Already have an account?",
+      "loginLink": "Sign in",
+      "success": "Your account has been created and you are signed in."
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "description": "Enter your email address and we will send instructions to reset your password.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "success": "If that email is registered, reset instructions have been sent.",
+      "backToLogin": "Remember your password? Sign in"
+    },
+    "errors": {
+      "email": "Enter a valid email address.",
+      "nameRequired": "Enter your name.",
+      "nameLength": "Your name must be between 2 and 100 characters.",
+      "passwordRequired": "Enter your password.",
+      "passwordLength": "Your password must be at least 8 characters.",
+      "confirmPassword": "Confirm your password.",
+      "passwordMismatch": "Passwords do not match.",
+      "invalidCredentials": "The email or password is incorrect.",
+      "emailExists": "An account with this email already exists.",
+      "invalidRegistration": "Check your details and try again.",
+      "connection": "Could not connect to Tomatime. Check your connection and try again.",
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }
