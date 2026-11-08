@@ -1,4 +1,35 @@
-<section class="landing-page">
-  <h1>{{ 'landing.heading' | translate }}</h1>
-  <p>{{ 'landing.description' | translate }}</p>
+<section class="landing-page" aria-labelledby="landing-title">
+  <img
+    class="vine vine--top-left"
+    src="vine-ornament.png"
+    alt=""
+    aria-hidden="true"
+  >
+  <img
+    class="vine vine--bottom-right"
+    src="vine-ornament.png"
+    alt=""
+    aria-hidden="true"
+  >
+
+  <div class="landing-content">
+    <img class="tomato-mark" src="tomatime-icon.ico" alt="">
+    <h1 id="landing-title">{{ 'app.name' | translate }}</h1>
+    <p class="landing-tagline">
+      <span>{{ 'landing.taglineFirst' | translate }}</span>
+      <span>{{ 'landing.taglineSecond' | translate }}</span>
+    </p>
+
+    <div class="landing-actions">
+      <a class="action-button action-button--primary" routerLink="/login">
+        {{ 'landing.signIn' | translate }}
+      </a>
+      <div class="register-action">
+        <p>{{ 'landing.registerPrompt' | translate }}</p>
+        <a class="action-button action-button--secondary" routerLink="/register">
+          {{ 'landing.register' | translate }}
+        </a>
+      </div>
+    </div>
+  </div>
 </section>

@@ -8,7 +8,10 @@
     "label": "Language"
   },
   "landing": {
-    "heading": "Welcome to Tomatime",
-    "description": "Your focus timer is ready to grow."
+    "taglineFirst": "Organize your time.",
+    "taglineSecond": "Focus on what matters.",
+    "signIn": "Sign in",
+    "registerPrompt": "Don't have an account yet?",
+    "register": "Create an account"
   }
 }
