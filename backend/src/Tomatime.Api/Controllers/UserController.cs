@@ -9,10 +9,12 @@ namespace Tomatime.Api.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserDatabaseService _userDatabaseService;
+    private readonly IUserRewardDatabaseService _userRewardDatabaseService;
 
-    public UserController(IUserDatabaseService userDatabaseService)
+    public UserController(IUserDatabaseService userDatabaseService, IUserRewardDatabaseService userRewardDatabaseService)
     {
         _userDatabaseService = userDatabaseService;
+        _userRewardDatabaseService = userRewardDatabaseService;
     }
 
     [HttpGet("profile/{userId}")]
@@ -73,5 +75,12 @@ public class UserController : ControllerBase
             return NotFound();
         }
         return NoContent();
+    }
+
+    [HttpGet("{userId}/rewards")]
+    public async Task<IActionResult> GetUserRewards(int userId)
+    {
+        var userRewards = await _userRewardDatabaseService.GetUserRewardsByUserIdAsync(userId);
+        return Ok(userRewards);
     }
 }
