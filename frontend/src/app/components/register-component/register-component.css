@@ -1,0 +1,21 @@
+:host {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.auth-panel--register {
+  max-width: 25rem;
+}
+
+.auth-form {
+  margin-top: 1.75rem;
+}
+
+.auth-button {
+  margin-top: 1.85rem;
+}
+
+.auth-footer--inline {
+  margin-top: 1.15rem;
+}

@@ -10,10 +10,7 @@ describe('LandingPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [LandingPageComponent],
-      providers: [
-        provideRouter([]),
-        provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
-      ],
+      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LandingPageComponent);

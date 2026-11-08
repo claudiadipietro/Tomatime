@@ -7,12 +7,8 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [
-        provideRouter([]),
-        provideTranslateService({ fallbackLang: 'en', lang: 'en' }),
-      ],
-    })
-      .compileComponents();
+      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
+    }).compileComponents();
   });
 
   it('should create the app', () => {

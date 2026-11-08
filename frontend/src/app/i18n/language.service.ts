@@ -21,8 +21,7 @@ export class LanguageService {
   async initialize(): Promise<void> {
     this.translate.addLangs([...SUPPORTED_LANGUAGES]);
 
-    const storedLanguage =
-      this.document.defaultView?.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    const storedLanguage = this.document.defaultView?.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     const language = this.isSupportedLanguage(storedLanguage)
       ? storedLanguage
       : this.getBrowserLanguage();
@@ -38,15 +37,12 @@ export class LanguageService {
   }
 
   private getBrowserLanguage(): SupportedLanguage {
-    const browserLanguage =
-      this.document.defaultView?.navigator.language.toLowerCase() ?? 'en';
+    const browserLanguage = this.document.defaultView?.navigator.language.toLowerCase() ?? 'en';
 
     return browserLanguage.startsWith('es') ? 'es' : 'en';
   }
 
-  private isSupportedLanguage(
-    language: string | null | undefined,
-  ): language is SupportedLanguage {
+  private isSupportedLanguage(language: string | null | undefined): language is SupportedLanguage {
     return language === 'en' || language === 'es';
   }
 

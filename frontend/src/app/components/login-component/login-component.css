@@ -1,0 +1,35 @@
+:host {
+  display: flex;
+  flex: 1;
+  width: 100%;
+}
+
+.auth-panel--login {
+  max-width: 25rem;
+}
+
+.auth-form {
+  margin-top: 2rem;
+}
+
+.forgot-password-link {
+  align-self: flex-end;
+  margin-top: -0.65rem;
+}
+
+.auth-button {
+  margin-top: 2rem;
+}
+
+.auth-footer {
+  margin-top: 3.25rem;
+}
+
+.auth-description {
+  margin: 0.75rem 0 0;
+  max-width: 23rem;
+}
+
+.auth-back-link {
+  margin-top: 1.5rem;
+}
