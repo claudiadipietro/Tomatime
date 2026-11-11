@@ -36,6 +36,8 @@ Keep frontend components, models, and services in their respective folders under
 
 Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. The backend currently logs reset links instead of sending email; configure an email sender before relying on delivery.
 
+After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the planned durations (in minutes) of completed sessions, not actual elapsed time. The calendar, session and reward screens are not available yet.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
