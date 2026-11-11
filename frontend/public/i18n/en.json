@@ -14,6 +14,29 @@
     "registerPrompt": "Don't have an account yet?",
     "register": "Create an account"
   },
+  "dashboard": {
+    "home": "Tomatime home",
+    "menu": "Menu",
+    "signOut": "Sign out",
+    "greeting": "Hello, {{name}}!",
+    "loading": "Loading your dashboard…",
+    "error": "Your dashboard could not be loaded.",
+    "retry": "Try again",
+    "nextSession": "Next session",
+    "noSession": "No upcoming sessions",
+    "minutes": "{{count}} minutes of focus",
+    "viewSession": "View session",
+    "planSession": "Plan a session",
+    "viewCalendar": "View calendar",
+    "ready": "Ready to focus?",
+    "startSession": "Start a session",
+    "redeem": "Redeem your pomos",
+    "viewRewards": "View rewards",
+    "summary": "Your summary",
+    "availablePomos": "pomos available",
+    "focusTime": "focus time",
+    "completedSessions": "completed sessions"
+  },
   "auth": {
     "backHome": "Back to Tomatime",
     "fields": {

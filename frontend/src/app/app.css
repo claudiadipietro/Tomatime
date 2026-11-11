@@ -15,25 +15,6 @@
   z-index: 2;
 }
 
-.language-picker {
-  align-items: center;
-  display: flex;
-  gap: 0.6rem;
-  color: var(--color-text-subtle);
-  font-size: 0.9rem;
-}
-
-.language-picker select {
-  appearance: none;
-  background: var(--color-surface-control);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  color: var(--color-text);
-  font: inherit;
-  padding: 0.55rem 2rem 0.55rem 0.85rem;
-  cursor: pointer;
-}
-
 main {
   display: flex;
   flex: 1;
@@ -42,15 +23,5 @@ main {
 @media (max-width: 520px) {
   .app-toolbar {
     padding: 1rem;
-  }
-
-  .language-picker label {
-    position: absolute;
-    clip: rect(0, 0, 0, 0);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 1px;
   }
 }

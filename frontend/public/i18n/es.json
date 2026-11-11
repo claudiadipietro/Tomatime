@@ -14,6 +14,29 @@
     "registerPrompt": "¿Todavía no tienes una cuenta?",
     "register": "Registrarse"
   },
+  "dashboard": {
+    "home": "Inicio de Tomatime",
+    "menu": "Menú",
+    "signOut": "Cerrar sesión",
+    "greeting": "¡Hola, {{name}}!",
+    "loading": "Cargando tu inicio…",
+    "error": "No se ha podido cargar tu pantalla de inicio.",
+    "retry": "Volver a intentar",
+    "nextSession": "Próxima sesión",
+    "noSession": "No tienes sesiones próximas",
+    "minutes": "{{count}} minutos de concentración",
+    "viewSession": "Ver sesión",
+    "planSession": "Planifica una sesión",
+    "viewCalendar": "Ver calendario",
+    "ready": "¿Listo para concentrarte?",
+    "startSession": "Iniciar una sesión",
+    "redeem": "Canjea tus pomos",
+    "viewRewards": "Ver recompensas",
+    "summary": "Tu resumen",
+    "availablePomos": "pomos disponibles",
+    "focusTime": "tiempo de concentración",
+    "completedSessions": "sesiones completadas"
+  },
   "auth": {
     "backHome": "Volver a Tomatime",
     "fields": {

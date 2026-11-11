@@ -26,7 +26,7 @@ public class Session
     public DateTime? ActualStartTime { get; set; }
 
     /// <summary>
-    /// Gets or sets the duration of the session.
+    /// Gets or sets the planned duration of the session in minutes.
     /// </summary>
     public int Duration { get; set; }
 

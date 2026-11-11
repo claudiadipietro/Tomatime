@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 
@@ -40,6 +40,7 @@ export class LoginComponent {
   constructor(
     private readonly authService: AuthService,
     private readonly changeDetector: ChangeDetectorRef,
+    private readonly router: Router,
     route: ActivatedRoute,
   ) {
     this.isForgotPasswordMode = route.snapshot.queryParamMap.get('forgotPassword') === 'true';
@@ -58,8 +59,7 @@ export class LoginComponent {
     this.authService.login(this.form.getRawValue()).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.successKey = 'auth.login.success';
-        this.changeDetector.markForCheck();
+        void this.router.navigate(['/home']);
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting = false;

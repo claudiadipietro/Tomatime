@@ -1,43 +1,36 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
-import { LanguageService } from './i18n/language.service';
+import { Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
+import { LanguagePickerComponent } from './components/language-picker-component/language-picker-component';
 
 @Component({
-  imports: [RouterOutlet, TranslatePipe],
+  imports: [RouterOutlet, LanguagePickerComponent],
   selector: 'app-root',
   styleUrl: './app.css',
   template: `
-    <header class="app-toolbar">
-      <div class="language-picker">
-        <label for="language-select">{{ 'language.label' | translate }}</label>
-        <select
-          id="language-select"
-          [value]="languageService.currentLanguage()"
-          (change)="onLanguageChange($event)"
-        >
-          <option value="en">English</option>
-          <option value="es">Español</option>
-        </select>
-      </div>
-    </header>
+    @if (!isDashboard()) {
+      <header class="app-toolbar">
+        <app-language-picker />
+      </header>
+    }
     <main>
       <router-outlet />
     </main>
   `,
 })
 export class App {
-  constructor(readonly languageService: LanguageService) {}
-
-  onLanguageChange(event: Event): void {
-    const target = event.currentTarget;
-    if (!(target instanceof HTMLSelectElement)) {
-      return;
-    }
-
-    const language = target.value;
-    if (language === 'en' || language === 'es') {
-      void this.languageService.setLanguage(language);
-    }
-  }
+  private readonly router = inject(Router);
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+  readonly isDashboard = computed(
+    () =>
+      this.router.parseUrl(this.currentUrl()).root.children['primary']?.segments[0]?.path ===
+      'home',
+  );
 }
