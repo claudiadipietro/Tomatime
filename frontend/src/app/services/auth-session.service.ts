@@ -13,7 +13,12 @@ export class AuthSessionService {
   readonly currentUser = computed(() => this.session()?.user ?? null);
 
   get accessToken(): string | null {
-    return this.session()?.accessToken ?? null;
+    const session = this.session();
+    if (session && Date.parse(session.expiresAt) <= Date.now()) {
+      this.clear();
+      return null;
+    }
+    return session?.accessToken ?? null;
   }
 
   save(response: AuthResponse): void {
