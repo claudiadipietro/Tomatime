@@ -1,0 +1,99 @@
+<header class="main-header">
+  <a routerLink="/home" [attr.aria-label]="'dashboard.home' | translate">
+    <img src="icons/icon-96x96.png" alt="" />
+  </a>
+  <div class="header-actions">
+  <app-language-picker />
+  <button
+    type="button"
+    class="menu-toggle"
+    [attr.aria-label]="'dashboard.menu' | translate"
+    [attr.aria-expanded]="menuOpen"
+    aria-controls="main-menu"
+    (click)="menuOpen = !menuOpen"
+  >
+    <span></span><span></span><span></span>
+  </button>
+  </div>
+  @if (menuOpen) {
+    <nav id="main-menu" class="main-menu" [attr.aria-label]="'dashboard.menu' | translate">
+      <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
+    </nav>
+  }
+</header>
+
+<div class="dashboard">
+  <h1>
+    {{ 'dashboard.greeting' | translate: { name: session.currentUser()?.name } }}
+    <span aria-hidden="true">👋</span>
+  </h1>
+
+  @if (loading()) {
+    <p class="dashboard-status" role="status">{{ 'dashboard.loading' | translate }}</p>
+  } @else if (error()) {
+    <div class="dashboard-status" role="alert">
+      <p>{{ 'dashboard.error' | translate }}</p>
+      <button type="button" class="retry-button" (click)="loadDashboard()">
+        {{ 'dashboard.retry' | translate }}
+      </button>
+    </div>
+  } @else if (dashboard(); as data) {
+    <div class="cards">
+      <section class="card">
+        <div>
+          <h2><span aria-hidden="true">🔜</span> {{ 'dashboard.nextSession' | translate }}</h2>
+          @if (data.nextSession; as next) {
+            <p>
+              {{ nextSessionDate() }}<br />{{
+                'dashboard.minutes' | translate: { count: next.duration }
+              }}
+            </p>
+          } @else {
+            <p>{{ 'dashboard.noSession' | translate }}</p>
+          }
+        </div>
+        <button type="button" disabled>
+          {{ 'dashboard.viewSession' | translate }}
+        </button>
+      </section>
+      <section class="card">
+        <h2><span aria-hidden="true">📅</span> {{ 'dashboard.planSession' | translate }}</h2>
+        <button type="button" disabled>
+          {{ 'dashboard.viewCalendar' | translate }}
+        </button>
+      </section>
+      <section class="card">
+        <h2><span aria-hidden="true">⏱️</span> {{ 'dashboard.ready' | translate }}</h2>
+        <button type="button" disabled>
+          {{ 'dashboard.startSession' | translate }}
+        </button>
+      </section>
+      <section class="card">
+        <h2><span aria-hidden="true">🍅</span> {{ 'dashboard.redeem' | translate }}</h2>
+        <button type="button" disabled>
+          {{ 'dashboard.viewRewards' | translate }}
+        </button>
+      </section>
+    </div>
+    <section class="summary" aria-labelledby="summary-title">
+      <h2 id="summary-title">{{ 'dashboard.summary' | translate }}</h2>
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-icon" aria-hidden="true">🍅</span>
+          <strong class="summary-value">{{ data.pomoBalance }}</strong>
+          <span class="summary-label">{{ 'dashboard.availablePomos' | translate }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-icon" aria-hidden="true">📚</span>
+          <strong class="summary-value">{{ focusTime() }}</strong>
+          <span class="summary-label">{{ 'dashboard.focusTime' | translate }}</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-icon" aria-hidden="true">⏱️</span>
+          <strong class="summary-value">{{ data.completedSessions }}</strong>
+          <span class="summary-label">{{ 'dashboard.completedSessions' | translate }}</span>
+        </div>
+      </div>
+    </section>
+  }
+</div>
