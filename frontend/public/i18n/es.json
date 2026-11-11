@@ -51,6 +51,18 @@
       "success": "Si el correo está registrado, recibirás instrucciones para recuperar tu contraseña.",
       "backToLogin": "¿Recuerdas tu contraseña? Inicia sesión"
     },
+    "resetPassword": {
+      "title": "Elige una contraseña nueva",
+      "description": "Introduce y confirma tu nueva contraseña.",
+      "newPassword": "Nueva contraseña",
+      "passwordLength": "La contraseña debe tener entre 8 y 128 caracteres.",
+      "submit": "Guardar contraseña",
+      "submitting": "Guardando…",
+      "success": "Tu contraseña se ha actualizado. Ya puedes iniciar sesión.",
+      "invalidLink": "Este enlace no es válido o ha caducado. Solicita uno nuevo.",
+      "requestLink": "Solicitar un nuevo enlace",
+      "backToLogin": "Volver al inicio de sesión"
+    },
     "errors": {
       "email": "Introduce un correo electrónico válido.",
       "nameRequired": "Introduce tu nombre.",

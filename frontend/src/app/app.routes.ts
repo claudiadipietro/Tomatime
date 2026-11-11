@@ -23,6 +23,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./components/reset-password-component/reset-password-component').then(
+        ({ ResetPasswordComponent }) => ResetPasswordComponent,
+      ),
+  },
+  {
     path: 'landing',
     redirectTo: '',
     pathMatch: 'full',
