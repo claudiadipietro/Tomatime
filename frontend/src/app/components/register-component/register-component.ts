@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import {
   AbstractControl,
   FormControl,
@@ -9,7 +9,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 
@@ -57,7 +57,11 @@ export class RegisterComponent {
   errorKey: string | null = null;
   successKey: string | null = null;
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly router: Router,
+    private readonly changeDetector: ChangeDetectorRef,
+  ) {}
 
   get passwordsDoNotMatch(): boolean {
     return this.form.hasError('passwordMismatch') && this.form.controls.confirmPassword.touched;
@@ -77,7 +81,7 @@ export class RegisterComponent {
     this.authService.register({ name: name.trim(), email: email.trim(), password }).subscribe({
       next: () => {
         this.isSubmitting = false;
-        this.successKey = 'auth.register.success';
+        void this.router.navigate(['/home']);
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting = false;
@@ -89,6 +93,7 @@ export class RegisterComponent {
               : error.status === 400
                 ? 'auth.errors.invalidRegistration'
                 : 'auth.errors.generic';
+        this.changeDetector.markForCheck();
       },
     });
   }
