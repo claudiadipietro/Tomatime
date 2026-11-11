@@ -6,6 +6,7 @@ import {
   ForgotPasswordRequest,
   LoginRequest,
   RegisterRequest,
+  ResetPasswordRequest,
 } from '../models/auth.models';
 import { AuthSessionService } from './auth-session.service';
 
@@ -30,5 +31,9 @@ export class AuthService {
 
   requestPasswordReset(request: ForgotPasswordRequest): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${AUTH_API_URL}/forgot-password`, request);
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${AUTH_API_URL}/reset-password`, request);
   }
 }

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AuthService } from '../../services/auth.service';
 
@@ -32,12 +32,18 @@ export class LoginComponent {
 
   isSubmitting = false;
   isRequestingReset = false;
-  isForgotPasswordMode = false;
+  isForgotPasswordMode: boolean;
   showPassword = false;
   errorKey: string | null = null;
   successKey: string | null = null;
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly changeDetector: ChangeDetectorRef,
+    route: ActivatedRoute,
+  ) {
+    this.isForgotPasswordMode = route.snapshot.queryParamMap.get('forgotPassword') === 'true';
+  }
 
   submit(): void {
     this.errorKey = null;
@@ -53,6 +59,7 @@ export class LoginComponent {
       next: () => {
         this.isSubmitting = false;
         this.successKey = 'auth.login.success';
+        this.changeDetector.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting = false;
@@ -62,6 +69,7 @@ export class LoginComponent {
             : error.status === 0
               ? 'auth.errors.connection'
               : 'auth.errors.generic';
+        this.changeDetector.markForCheck();
       },
     });
   }
@@ -80,10 +88,12 @@ export class LoginComponent {
       next: () => {
         this.isRequestingReset = false;
         this.successKey = 'auth.forgotPassword.success';
+        this.changeDetector.markForCheck();
       },
       error: (error: HttpErrorResponse) => {
         this.isRequestingReset = false;
         this.errorKey = error.status === 0 ? 'auth.errors.connection' : 'auth.errors.generic';
+        this.changeDetector.markForCheck();
       },
     });
   }

@@ -27,11 +27,14 @@ src/app/
     landing-page-component/
     login-component/
     register-component/
+    reset-password-component/
   models/                # Auth and user API models
   services/              # Auth API, session storage, HTTP interceptor
 ```
 
 Keep frontend components, models, and services in their respective folders under `src/app`. The .NET backend has its own independent model and service layers.
+
+Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. The backend currently logs reset links instead of sending email; configure an email sender before relying on delivery.
 
 ## Code scaffolding
 

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';
 import { LoginComponent } from './login-component';
@@ -27,5 +27,17 @@ describe('LoginComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows the request confirmation after the server responds', async () => {
+    component.toggleForgotPassword();
+    component.forgotPasswordForm.setValue({ email: 'jane@example.com' });
+    component.requestPasswordReset();
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/auth/forgot-password')
+      .flush({ message: 'If the email exists, a password reset link has been sent.' });
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('[role="status"]')).toBeTruthy();
   });
 });
