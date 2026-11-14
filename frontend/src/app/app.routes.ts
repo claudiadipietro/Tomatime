@@ -39,6 +39,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'sessions/new',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/new-session-component/new-session-component').then(
+        ({ NewSessionComponent }) => NewSessionComponent,
+      ),
+  },
+  {
     path: 'landing',
     redirectTo: '',
     pathMatch: 'full',

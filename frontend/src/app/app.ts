@@ -28,9 +28,9 @@ export class App {
     ),
     { initialValue: this.router.url },
   );
-  readonly isDashboard = computed(
-    () =>
-      this.router.parseUrl(this.currentUrl()).root.children['primary']?.segments[0]?.path ===
-      'home',
+  readonly isDashboard = computed(() =>
+    ['home', 'sessions'].includes(
+      this.router.parseUrl(this.currentUrl()).root.children['primary']?.segments[0]?.path ?? '',
+    ),
   );
 }
