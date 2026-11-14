@@ -6,10 +6,11 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { SessionService } from '../../services/session.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
+import { SessionDurationComponent } from '../session-duration-component/session-duration-component';
 
 @Component({
   selector: 'app-new-session',
-  imports: [RouterLink, TranslatePipe, MainHeaderComponent],
+  imports: [RouterLink, TranslatePipe, MainHeaderComponent, SessionDurationComponent],
   templateUrl: './new-session-component.html',
   styleUrl: './new-session-component.css',
 })
