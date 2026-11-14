@@ -38,6 +38,8 @@ Password reset links open `/reset-password?token=...`. The form sends the token 
 
 After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the planned durations (in minutes) of completed sessions, not actual elapsed time. The calendar, session and reward screens are not available yet.
 
+The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. Both actions record the session as in progress, but the countdown and completion flow are not implemented yet; they do not automatically complete a session or award pomos.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
