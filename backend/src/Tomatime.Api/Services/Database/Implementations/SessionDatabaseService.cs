@@ -53,6 +53,17 @@ public class SessionDatabaseService : ISessionDatabaseService
         return true;
     }
 
+    public async Task<bool> StartPlannedAsync(int userId, int sessionId, DateTime startedAt)
+    {
+        var updated = await _repository.Query()
+            .Where(session => session.Id == sessionId && session.UserId == userId &&
+                              session.Status == SessionStatus.Planned)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(session => session.Status, SessionStatus.InProgress)
+                .SetProperty(session => session.ActualStartTime, startedAt));
+        return updated != 0;
+    }
+
     public Task<List<Session>> GetSessionsByUserIdAsync(int userId)
     {
         return _repository.Query()
