@@ -1,0 +1,35 @@
+<div class="duration-control">
+  <button
+    type="button"
+    class="adjust-button"
+    (click)="durationChange.emit(duration() - 25)"
+    [disabled]="duration() === 25 || disabled()"
+    [attr.aria-label]="'session.decrease' | translate"
+  >
+    −
+  </button>
+  <output class="duration" aria-live="polite">{{
+    'session.durationValue' | translate: { count: duration() }
+  }}</output>
+  <button
+    type="button"
+    class="adjust-button"
+    (click)="durationChange.emit(duration() + 25)"
+    [disabled]="duration() === 300 || disabled()"
+    [attr.aria-label]="'session.increase' | translate"
+  >
+    +
+  </button>
+</div>
+<ng-content />
+<p class="duration-summary">{{ 'session.focusTotal' | translate: { count: duration() } }}</p>
+<div class="timeline" [attr.aria-label]="'session.timeline' | translate">
+  @for (block of blocks(); track block) {
+    @if (block > 0) {
+      <span class="timeline-arrow" aria-hidden="true">→</span>
+      <span>{{ 'session.breakBlock' | translate }}</span>
+      <span class="timeline-arrow" aria-hidden="true">→</span>
+    }
+    <span>{{ 'session.focusBlock' | translate }}</span>
+  }
+</div>

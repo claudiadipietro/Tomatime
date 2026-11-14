@@ -47,6 +47,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'sessions/plan',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/plan-session-component/plan-session-component').then(
+        ({ PlanSessionComponent }) => PlanSessionComponent,
+      ),
+  },
+  {
     path: 'landing',
     redirectTo: '',
     pathMatch: 'full',

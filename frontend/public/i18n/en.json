@@ -55,6 +55,21 @@
     "start": "Start session",
     "starting": "Starting…"
   },
+  "planning": {
+    "title": "Plan a session",
+    "prompt": "When and for how long would you like to focus?",
+    "date": "Date",
+    "time": "Time",
+    "dateRequired": "Choose a date.",
+    "timeRequired": "Choose a time.",
+    "invalidTime": "Choose a valid date and time in the future.",
+    "checkDetails": "Check the date, time and duration and try again.",
+    "notificationsUnavailable": "Session reminders are not available yet.",
+    "submit": "Plan session",
+    "submitting": "Planning…",
+    "success": "Your session has been planned.",
+    "error": "The session could not be planned. Please try again."
+  },
   "auth": {
     "backHome": "Back to Tomatime",
     "fields": {

@@ -1,0 +1,70 @@
+<app-main-header />
+<div class="session-page">
+  <a class="back-link" routerLink="/home" [attr.aria-label]="'session.back' | translate">
+    <span aria-hidden="true">←</span> {{ 'session.back' | translate }}
+  </a>
+  <section class="session-content" aria-labelledby="plan-title">
+    <h1 id="plan-title">{{ 'planning.title' | translate }}</h1>
+    @if (planned()) {
+      <p class="notice notice--success" role="status">{{ 'planning.success' | translate }}</p>
+      <a class="primary-button" routerLink="/home">{{ 'session.back' | translate }}</a>
+    } @else {
+      <h2>{{ 'planning.prompt' | translate }}</h2>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <app-session-duration
+          [duration]="duration()"
+          [disabled]="submitting()"
+          (durationChange)="duration.set($event)"
+        >
+          <div class="schedule-fields">
+            <div class="schedule-field">
+              <label for="planned-date">{{ 'planning.date' | translate }}</label>
+              <input
+                id="planned-date"
+                type="date"
+                formControlName="date"
+                [attr.aria-invalid]="form.controls.date.invalid && form.controls.date.touched"
+                [attr.aria-describedby]="
+                  form.controls.date.invalid && form.controls.date.touched
+                    ? 'planned-date-error'
+                    : null
+                "
+              />
+              @if (form.controls.date.invalid && form.controls.date.touched) {
+                <p class="error" id="planned-date-error">
+                  {{ 'planning.dateRequired' | translate }}
+                </p>
+              }
+            </div>
+            <div class="schedule-field">
+              <label for="planned-time">{{ 'planning.time' | translate }}</label>
+              <input
+                id="planned-time"
+                type="time"
+                formControlName="time"
+                [attr.aria-invalid]="form.controls.time.invalid && form.controls.time.touched"
+                [attr.aria-describedby]="
+                  form.controls.time.invalid && form.controls.time.touched
+                    ? 'planned-time-error'
+                    : null
+                "
+              />
+              @if (form.controls.time.invalid && form.controls.time.touched) {
+                <p class="error" id="planned-time-error">
+                  {{ 'planning.timeRequired' | translate }}
+                </p>
+              }
+            </div>
+          </div>
+          <p class="notice">{{ 'planning.notificationsUnavailable' | translate }}</p>
+        </app-session-duration>
+        @if (errorKey()) {
+          <p class="error" role="alert">{{ errorKey()! | translate }}</p>
+        }
+        <button class="primary-button" type="submit" [disabled]="submitting()">
+          {{ (submitting() ? 'planning.submitting' : 'planning.submit') | translate }}
+        </button>
+      </form>
+    }
+  </section>
+</div>

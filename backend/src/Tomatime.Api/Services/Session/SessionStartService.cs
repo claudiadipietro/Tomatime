@@ -9,7 +9,7 @@ public sealed class SessionStartService(
 {
     public async Task<SpontaneousSessionStartResult> StartSpontaneousAsync(int userId, int duration)
     {
-        if (duration is < 25 or > 300 || duration % 25 != 0)
+        if (!SessionDuration.IsValid(duration))
             return new(SpontaneousSessionStartStatus.InvalidDuration);
 
         if (await users.GetUserByIdAsync(userId) is null)
