@@ -40,6 +40,8 @@ After login or registration, `/home` shows the authenticated dashboard. Its data
 
 The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. Both actions record the session as in progress, but the countdown and completion flow are not implemented yet; they do not automatically complete a session or award pomos.
 
+The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC. Session reminders are not implemented.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
