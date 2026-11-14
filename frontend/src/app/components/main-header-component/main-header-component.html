@@ -1,0 +1,23 @@
+<header class="main-header">
+  <a routerLink="/home" [attr.aria-label]="'dashboard.home' | translate">
+    <img src="icons/icon-96x96.png" alt="" />
+  </a>
+  <div class="header-actions">
+    <app-language-picker />
+    <button
+      type="button"
+      class="menu-toggle"
+      [attr.aria-label]="'dashboard.menu' | translate"
+      [attr.aria-expanded]="menuOpen"
+      aria-controls="main-menu"
+      (click)="menuOpen = !menuOpen"
+    >
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  @if (menuOpen) {
+    <nav id="main-menu" class="main-menu" [attr.aria-label]="'dashboard.menu' | translate">
+      <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
+    </nav>
+  }
+</header>

@@ -4,13 +4,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../i18n/language.service';
-import { LanguagePickerComponent } from '../language-picker-component/language-picker-component';
+import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { Dashboard } from '../../models/dashboard.model';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { SessionService } from '../../services/session.service';
 
 @Component({
-  imports: [RouterLink, TranslatePipe, LanguagePickerComponent],
+  imports: [RouterLink, TranslatePipe, MainHeaderComponent],
   selector: 'app-main-screen-component',
   templateUrl: './main-screen-component.html',
   styleUrl: './main-screen-component.css',
@@ -18,6 +19,7 @@ import { DashboardService } from '../../services/dashboard.service';
 export class MainScreenComponent {
   readonly session = inject(AuthSessionService);
   private readonly dashboardService = inject(DashboardService);
+  private readonly sessionService = inject(SessionService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -25,7 +27,9 @@ export class MainScreenComponent {
   readonly dashboard = signal<Dashboard | null>(null);
   readonly loading = signal(true);
   readonly error = signal(false);
-  menuOpen = false;
+  readonly starting = signal(false);
+  readonly startMessage = signal(false);
+  readonly startError = signal(false);
 
   readonly nextSessionDate = computed(() => {
     const date = this.dashboard()?.nextSession?.plannedStartTime;
@@ -65,6 +69,28 @@ export class MainScreenComponent {
           } else {
             this.error.set(true);
           }
+        },
+      });
+  }
+
+  startPlanned(sessionId: number | undefined): void {
+    if (sessionId === undefined || this.starting()) return;
+    this.starting.set(true);
+    this.startError.set(false);
+    this.startMessage.set(false);
+    this.sessionService
+      .startPlanned(sessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.starting.set(false);
+          this.startMessage.set(true);
+          this.loadDashboard();
+        },
+        error: (error: HttpErrorResponse) => {
+          this.starting.set(false);
+          if (error.status === 401) this.logout();
+          else this.startError.set(true);
         },
       });
   }

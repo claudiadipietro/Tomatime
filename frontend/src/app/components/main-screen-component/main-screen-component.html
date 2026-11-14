@@ -1,26 +1,4 @@
-<header class="main-header">
-  <a routerLink="/home" [attr.aria-label]="'dashboard.home' | translate">
-    <img src="icons/icon-96x96.png" alt="" />
-  </a>
-  <div class="header-actions">
-  <app-language-picker />
-  <button
-    type="button"
-    class="menu-toggle"
-    [attr.aria-label]="'dashboard.menu' | translate"
-    [attr.aria-expanded]="menuOpen"
-    aria-controls="main-menu"
-    (click)="menuOpen = !menuOpen"
-  >
-    <span></span><span></span><span></span>
-  </button>
-  </div>
-  @if (menuOpen) {
-    <nav id="main-menu" class="main-menu" [attr.aria-label]="'dashboard.menu' | translate">
-      <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
-    </nav>
-  }
-</header>
+<app-main-header />
 
 <div class="dashboard">
   <h1>
@@ -28,6 +6,13 @@
     <span aria-hidden="true">👋</span>
   </h1>
 
+  @if (startMessage()) {
+    <p class="dashboard-status" role="status">{{ 'session.startedNotice' | translate }}</p>
+  }
+  @if (startError()) {
+    <p class="dashboard-status" role="alert">{{ 'session.startError' | translate }}</p>
+  }
+  <p class="session-disclaimer">{{ 'session.timerUnavailable' | translate }}</p>
   @if (loading()) {
     <p class="dashboard-status" role="status">{{ 'dashboard.loading' | translate }}</p>
   } @else if (error()) {
@@ -52,8 +37,12 @@
             <p>{{ 'dashboard.noSession' | translate }}</p>
           }
         </div>
-        <button type="button" disabled>
-          {{ 'dashboard.viewSession' | translate }}
+        <button
+          type="button"
+          [disabled]="!data.nextSession || starting()"
+          (click)="startPlanned(data.nextSession?.id)"
+        >
+          {{ 'session.startPlanned' | translate }}
         </button>
       </section>
       <section class="card">
@@ -64,9 +53,9 @@
       </section>
       <section class="card">
         <h2><span aria-hidden="true">⏱️</span> {{ 'dashboard.ready' | translate }}</h2>
-        <button type="button" disabled>
+        <a class="card-action" routerLink="/sessions/new">
           {{ 'dashboard.startSession' | translate }}
-        </button>
+        </a>
       </section>
       <section class="card">
         <h2><span aria-hidden="true">🍅</span> {{ 'dashboard.redeem' | translate }}</h2>

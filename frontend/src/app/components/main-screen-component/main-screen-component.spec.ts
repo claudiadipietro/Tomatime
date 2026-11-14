@@ -63,11 +63,57 @@ describe('Main screen navigation', () => {
     await harness.fixture.whenStable();
     expect(component.dashboard()?.pomoBalance).toBe(24);
     expect(harness.routeNativeElement?.textContent).toContain('24');
-    expect(harness.routeNativeElement?.querySelectorAll('button:disabled').length).toBe(4);
+    expect(harness.routeNativeElement?.querySelectorAll('button:disabled').length).toBe(3);
+    expect(harness.routeNativeElement?.querySelector('a[href="/sessions/new"]')).toBeTruthy();
     component.logout();
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/login');
     expect(auth.accessToken).toBeNull();
+  });
+
+  it('starts the existing planned session by id and refreshes the dashboard', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl('/home', MainScreenComponent);
+    http.expectOne('/api/dashboard').flush({
+      pomoBalance: 0,
+      nextSession: { id: 45, plannedStartTime: new Date().toISOString(), duration: 50 },
+      focusMinutes: 0,
+      completedSessions: 0,
+    });
+
+    await harness.fixture.whenStable();
+    component.startPlanned(45);
+    component.startPlanned(45);
+    const request = http.expectOne('/api/session-starts/45');
+    expect(request.request.method).toBe('POST');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/dashboard').flush({
+      pomoBalance: 0,
+      nextSession: null,
+      focusMinutes: 0,
+      completedSessions: 0,
+    });
+    await harness.fixture.whenStable();
+    expect(component.startMessage()).toBe(true);
+    http.expectNone('/api/session-starts');
+  });
+
+  it('keeps the planned session visible if starting it fails', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl('/home', MainScreenComponent);
+    http.expectOne('/api/dashboard').flush({
+      pomoBalance: 0,
+      nextSession: { id: 45, plannedStartTime: new Date().toISOString(), duration: 50 },
+      focusMinutes: 0,
+      completedSessions: 0,
+    });
+    component.startPlanned(45);
+    http.expectOne('/api/session-starts/45').flush('error', { status: 500, statusText: 'Error' });
+    await harness.fixture.whenStable();
+    expect(component.startError()).toBe(true);
+    expect(component.dashboard()?.nextSession?.id).toBe(45);
   });
 
   it('shows an error and retries when the dashboard request fails', async () => {
