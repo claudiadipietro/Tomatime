@@ -8,6 +8,12 @@ export interface StartedSession {
   actualStartTime: string;
 }
 
+export interface PlannedSession {
+  id: number;
+  duration: number;
+  plannedStartTime: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private readonly http = inject(HttpClient);
@@ -18,5 +24,9 @@ export class SessionService {
 
   startPlanned(sessionId: number): Observable<void> {
     return this.http.post<void>(`/api/session-starts/${sessionId}`, {});
+  }
+
+  plan(duration: number, plannedStartTime: string): Observable<PlannedSession> {
+    return this.http.post<PlannedSession>('/api/session-plans', { duration, plannedStartTime });
   }
 }
