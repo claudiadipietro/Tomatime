@@ -1,0 +1,56 @@
+<app-main-header />
+<div class="session-page">
+  <a class="back-link" routerLink="/home" [attr.aria-label]="'session.back' | translate">
+    <span aria-hidden="true">←</span> {{ 'session.back' | translate }}
+  </a>
+  <section class="session-content" aria-labelledby="session-title">
+    <h1 id="session-title">{{ 'session.title' | translate }}</h1>
+    @if (started()) {
+      <p class="notice notice--success" role="status">{{ 'session.startedNotice' | translate }}</p>
+      <a class="primary-button" routerLink="/home">{{ 'session.back' | translate }}</a>
+    } @else {
+      <h2>{{ 'session.prompt' | translate }}</h2>
+      <div class="duration-control">
+        <button
+          type="button"
+          class="adjust-button"
+          (click)="changeDuration(-25)"
+          [disabled]="duration() === 25 || submitting()"
+          [attr.aria-label]="'session.decrease' | translate"
+        >
+          −
+        </button>
+        <output class="duration" aria-live="polite">{{
+          'session.durationValue' | translate: { count: duration() }
+        }}</output>
+        <button
+          type="button"
+          class="adjust-button"
+          (click)="changeDuration(25)"
+          [disabled]="duration() === 300 || submitting()"
+          [attr.aria-label]="'session.increase' | translate"
+        >
+          +
+        </button>
+      </div>
+      <p class="duration-summary">{{ 'session.focusTotal' | translate: { count: duration() } }}</p>
+      <div class="timeline" [attr.aria-label]="'session.timeline' | translate">
+        @for (block of blocks(); track block) {
+          @if (block > 0) {
+            <span class="timeline-arrow" aria-hidden="true">→</span>
+            <span>{{ 'session.breakBlock' | translate }}</span>
+            <span class="timeline-arrow" aria-hidden="true">→</span>
+          }
+          <span>{{ 'session.focusBlock' | translate }}</span>
+        }
+      </div>
+      <p class="notice">{{ 'session.timerUnavailable' | translate }}</p>
+      @if (error()) {
+        <p class="error" role="alert">{{ 'session.startError' | translate }}</p>
+      }
+      <button class="primary-button" type="button" [disabled]="submitting()" (click)="start()">
+        {{ (submitting() ? 'session.starting' : 'session.start') | translate }}
+      </button>
+    }
+  </section>
+</div>

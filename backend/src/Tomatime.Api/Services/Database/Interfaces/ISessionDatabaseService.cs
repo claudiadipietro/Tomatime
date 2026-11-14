@@ -8,5 +8,6 @@ public interface ISessionDatabaseService
     Task<List<Session>> GetSessionsByUserIdAsync(int userId);
     Task<Session?> CreateSessionAsync(Session session);
     Task<Session?> UpdateSessionAsync(Session session);
+    Task<bool> StartPlannedAsync(int userId, int sessionId, DateTime startedAt);
     Task<bool> DeleteSessionAsync(int sessionId);
 }

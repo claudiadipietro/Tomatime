@@ -36,11 +36,10 @@ public sealed class DashboardController : ControllerBase
         }
 
         var userSessions = await sessions.GetSessionsByUserIdAsync(userId);
-        var now = DateTime.UtcNow;
         var next = userSessions
-            .Where(session => session.Status == SessionStatus.Planned && session.PlannedStartTime >= now)
+            .Where(session => session.Status == SessionStatus.Planned)
             .OrderBy(session => session.PlannedStartTime)
-            .Select(session => new DashboardSession(session.PlannedStartTime, session.Duration))
+            .Select(session => new DashboardSession(session.Id, session.PlannedStartTime, session.Duration))
             .FirstOrDefault();
         var completed = userSessions.Where(session => session.Status == SessionStatus.Completed).ToList();
 

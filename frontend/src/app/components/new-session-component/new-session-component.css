@@ -1,0 +1,144 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.session-page {
+  color: var(--color-text-muted);
+  padding: 1.5rem clamp(1.25rem, 4vw, 3rem) 4rem;
+}
+
+.back-link {
+  color: var(--color-text-subtle);
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  text-decoration: none;
+}
+
+.back-link span {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.session-content {
+  margin: 0 auto;
+  max-width: 56rem;
+  text-align: center;
+}
+
+h1 {
+  color: var(--color-primary-text);
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  margin: 0 0 1.5rem;
+}
+
+h2 {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  margin: 0;
+}
+
+.duration-control {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 4rem auto 3rem;
+}
+
+.adjust-button {
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-on-primary);
+  cursor: pointer;
+  font-size: 2rem;
+  height: 3rem;
+  line-height: 1;
+  width: 3rem;
+}
+
+.adjust-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.duration {
+  background: var(--color-surface);
+  border-radius: 0.5rem;
+  font-size: 1.8rem;
+  font-weight: 700;
+  min-width: 9rem;
+  padding: 0.4rem 1rem;
+}
+
+.duration-summary {
+  font-size: 1.3rem;
+}
+
+.timeline {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  line-height: 1.5;
+  margin: 1.5rem auto;
+}
+
+.notice {
+  color: var(--color-text-subtle);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 2rem auto 1.5rem;
+  max-width: 35rem;
+}
+
+.notice--success {
+  background: var(--color-success-surface);
+  border-radius: 0.75rem;
+  color: var(--color-success);
+  padding: 1rem;
+}
+
+.error {
+  color: var(--color-danger);
+}
+
+.primary-button {
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 0.75rem;
+  color: var(--color-on-primary);
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  min-width: min(100%, 20rem);
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.primary-button:focus-visible,
+.adjust-button:focus-visible,
+.back-link:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+@media (max-width: 520px) {
+  .duration-control {
+    margin: 2.5rem auto;
+  }
+
+  .timeline {
+    font-size: 0.95rem;
+  }
+}

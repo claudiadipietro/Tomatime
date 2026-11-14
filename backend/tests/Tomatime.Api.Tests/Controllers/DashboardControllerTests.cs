@@ -35,7 +35,8 @@ public class DashboardControllerTests
         Assert.Equal(2, response.CompletedSessions);
         Assert.Equal(75, response.FocusMinutes);
         Assert.NotNull(response.NextSession);
-        Assert.Equal(30, response.NextSession.Duration);
+        Assert.Equal(42, response.NextSession.Id);
+        Assert.Equal(10, response.NextSession.Duration);
         Assert.NotEmpty(typeof(DashboardController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
     }
 
@@ -74,7 +75,7 @@ public class DashboardControllerTests
             {
                 new() { Status = SessionStatus.Planned, PlannedStartTime = now.AddHours(2), Duration = 60 },
                 new() { Status = SessionStatus.Planned, PlannedStartTime = now.AddHours(1), Duration = 30 },
-                new() { Status = SessionStatus.Planned, PlannedStartTime = now.AddHours(-1), Duration = 10 },
+                new() { Id = 42, Status = SessionStatus.Planned, PlannedStartTime = now.AddHours(-1), Duration = 10 },
                 new() { Status = SessionStatus.Completed, Duration = 50 },
                 new() { Status = SessionStatus.Completed, Duration = 25 },
                 new() { Status = SessionStatus.Cancelled, Duration = 100 },
@@ -83,6 +84,7 @@ public class DashboardControllerTests
         public Task<Session?> GetSessionByIdAsync(int sessionId) => throw new NotImplementedException();
         public Task<Session?> CreateSessionAsync(Session session) => throw new NotImplementedException();
         public Task<Session?> UpdateSessionAsync(Session session) => throw new NotImplementedException();
+        public Task<bool> StartPlannedAsync(int userId, int sessionId, DateTime startedAt) => throw new NotImplementedException();
         public Task<bool> DeleteSessionAsync(int sessionId) => throw new NotImplementedException();
     }
 }
