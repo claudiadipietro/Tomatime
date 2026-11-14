@@ -55,6 +55,21 @@
     "start": "Comenzar sesión",
     "starting": "Iniciando…"
   },
+  "planning": {
+    "title": "Planificar una sesión",
+    "prompt": "¿Cuándo y cuánto tiempo quieres concentrarte?",
+    "date": "Fecha",
+    "time": "Hora",
+    "dateRequired": "Elige una fecha.",
+    "timeRequired": "Elige una hora.",
+    "invalidTime": "Elige una fecha y una hora válidas en el futuro.",
+    "checkDetails": "Revisa la fecha, la hora y la duración e inténtalo de nuevo.",
+    "notificationsUnavailable": "Los recordatorios de sesiones todavía no están disponibles.",
+    "submit": "Planificar sesión",
+    "submitting": "Planificando…",
+    "success": "Tu sesión se ha planificado.",
+    "error": "No se ha podido planificar la sesión. Inténtalo de nuevo."
+  },
   "auth": {
     "backHome": "Volver a Tomatime",
     "fields": {
