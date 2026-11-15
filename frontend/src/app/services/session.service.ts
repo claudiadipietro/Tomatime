@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { RewardShopState } from './reward-shop.service';
 
 export interface StartedSession {
   id: number;
@@ -19,6 +20,8 @@ export interface ActiveSession {
   duration: number;
   actualStartTime: string;
   serverTime: string;
+  breakExtensions: number[];
+  pomoBalance: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -51,5 +54,9 @@ export class SessionService {
 
   complete(id: number): Observable<{ pomosEarned: number }> {
     return this.http.post<{ pomosEarned: number }>(`/api/session-runs/${id}/complete`, {});
+  }
+
+  extendBreak(id: number, operationId: string): Observable<RewardShopState> {
+    return this.http.post<RewardShopState>(`/api/session-runs/${id}/extend-break`, { operationId });
   }
 }

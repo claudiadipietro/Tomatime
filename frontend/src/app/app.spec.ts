@@ -4,6 +4,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { App } from './app';
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 
 @Component({ template: '' })
 class PageComponent {}
@@ -12,7 +13,7 @@ describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
+      providers: [provideHttpClient(), provideRouter([]), provideTranslateService({ fallbackLang: 'en', lang: 'en' })],
     }).compileComponents();
   });
 
@@ -28,6 +29,7 @@ describe('App language picker placement', () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
+        provideHttpClient(),
         provideRouter([
           { path: '', component: PageComponent },
           { path: 'home', component: PageComponent },

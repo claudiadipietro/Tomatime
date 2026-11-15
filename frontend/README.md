@@ -36,7 +36,9 @@ Keep frontend components, models, and services in their respective folders under
 
 Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. The backend currently logs reset links instead of sending email; configure an email sender before relying on delivery.
 
-After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the focus durations (in minutes) of completed sessions. The reward screen is not available yet.
+After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the focus durations (in minutes) of completed sessions. The rewards screen shows the balance and allows users to buy and activate themes or purchase extra breaks.
+
+Extra breaks bought in the shop are applied at the first break of a later eligible session. A session without breaks, or one cancelled before its first break, leaves the purchase pending. Extra breaks can also be bought during a break and are applied immediately.
 
 The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. The timer includes a five-minute break between focus blocks. Completing the entire session awards two pomos per focus block, once; leaving or reloading cancels it without a reward. The timer requires an active connection: if activity is not received for two minutes, the server cancels the session.
 

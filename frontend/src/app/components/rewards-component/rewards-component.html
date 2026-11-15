@@ -1,0 +1,45 @@
+<app-main-header />
+<main class="rewards-page">
+  <a class="back-link" routerLink="/home">‹ {{ 'rewards.back' | translate }}</a>
+  <h1>{{ 'rewards.title' | translate }}</h1>
+  @if (loading()) {
+    <p role="status">{{ 'rewards.loading' | translate }}</p>
+  } @else if (state(); as data) {
+    <p class="balance">🍅 {{ 'rewards.balance' | translate: { count: data.pomoBalance } }}</p>
+    @if (error()) { <p class="error" role="alert">{{ error()! | translate }}</p> }
+    <h2>{{ 'rewards.breakTitle' | translate }}</h2>
+    <article class="break-card">
+      <div>
+        <h3>⏱️ {{ 'rewards.extraBreak' | translate }}</h3>
+        <p>{{ 'rewards.breakDescription' | translate }}</p>
+        <p>{{ 'rewards.pending' | translate: { count: data.pendingExtraBreaks } }}</p>
+      </div>
+      <button type="button" [disabled]="busy() || (data.pomoBalance < 5 && !pending('extra-break'))" (click)="purchase('extra-break')">
+        {{ (pending('extra-break') ? 'rewards.retryPurchase' : 'rewards.buy') | translate: { count: 5 } }}
+      </button>
+    </article>
+    <h2>{{ 'rewards.themes' | translate }}</h2>
+    <section class="themes">
+      @for (theme of themes; track theme) {
+        <article class="theme-card">
+          <div class="theme-preview" [class]="'theme-preview ' + theme" aria-hidden="true">🍅</div>
+          <h3>{{ 'rewards.theme.' + theme | translate }}</h3>
+          @if (data.currentTheme === theme) {
+            <button type="button" disabled>{{ 'rewards.active' | translate }}</button>
+          } @else if (theme !== 'default' && pending(theme)) {
+            <button type="button" [disabled]="busy()" (click)="purchase(theme)">{{ 'rewards.retryPurchase' | translate }}</button>
+          } @else if (owned(theme)) {
+            <button type="button" [disabled]="busy()" (click)="activate(theme)">{{ 'rewards.activate' | translate }}</button>
+          } @else if (theme !== 'default') {
+            <button type="button" [disabled]="busy() || data.pomoBalance < 5" (click)="purchase(theme)">
+              {{ 'rewards.buy' | translate: { count: 5 } }}
+            </button>
+          }
+        </article>
+      }
+    </section>
+  } @else {
+    <p class="error" role="alert">{{ 'rewards.loadError' | translate }}</p>
+    <button type="button" (click)="load()">{{ 'rewards.retryLoad' | translate }}</button>
+  }
+</main>

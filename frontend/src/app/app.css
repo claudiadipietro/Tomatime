@@ -15,6 +15,14 @@
   z-index: 2;
 }
 
+.theme-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  background: #fff3cd;
+  color: #664d03;
+}
+
 main {
   display: flex;
   flex: 1;

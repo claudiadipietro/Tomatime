@@ -16,6 +16,7 @@ import { catchError, map, Observable, of, Subject, switchMap, take, finalize } f
 import { AuthSessionService } from '../../services/auth-session.service';
 import { ActiveSession, SessionService } from '../../services/session.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
+import { RewardOperationService } from '../../services/reward-operation.service';
 
 @Component({
   selector: 'app-timer',
@@ -25,6 +26,7 @@ import { MainHeaderComponent } from '../main-header-component/main-header-compon
 })
 export class TimerComponent {
   private readonly sessions = inject(SessionService);
+  private readonly operations = inject(RewardOperationService);
   private readonly auth = inject(AuthSessionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
@@ -37,12 +39,17 @@ export class TimerComponent {
   private monotonicAtSync = 0;
   private completing = false;
   private leaving = false;
+  private wasBreak = false;
 
   readonly session = signal<ActiveSession | null>(null);
   readonly state = signal<'loading' | 'active' | 'completed' | 'ended'>('loading');
   readonly cancellationPending = signal(false);
   readonly error = signal<string | null>(null);
   readonly earned = signal(0);
+  readonly extending = signal(false);
+  get pendingExtension(): boolean {
+    return this.operations.hasPending(`session.${this.id}.extra-break`);
+  }
   readonly confetti = Array.from({ length: 42 }, (_, index) => index);
   readonly elapsed = computed(() => {
     const session = this.session();
@@ -52,20 +59,31 @@ export class TimerComponent {
   });
   readonly totalSeconds = computed(() => {
     const duration = this.session()?.duration ?? 0;
-    return (duration + Math.max(0, duration / 25 - 1) * 5) * 60;
+    const extra = (this.session()?.breakExtensions ?? []).reduce((sum, count) => sum + count, 0);
+    return (duration + (Math.max(0, duration / 25 - 1) + extra) * 5) * 60;
   });
-  readonly isBreak = computed(
-    () => this.elapsed() < this.totalSeconds() && this.elapsed() % 1800 >= 1500,
-  );
-  readonly block = computed(() =>
-    Math.min(Math.floor(this.elapsed() / 1800) + 1, (this.session()?.duration ?? 25) / 25),
-  );
+  readonly phase = computed(() => {
+    const elapsed = this.elapsed();
+    const blocks = this.blocks();
+    const extensions = this.session()?.breakExtensions ?? [];
+    let start = 0;
+    for (let i = 0; i < blocks; i++) {
+      if (elapsed < start + 1500) return { block: i + 1, isBreak: false, end: start + 1500 };
+      start += 1500;
+      if (i < blocks - 1) {
+        const end = start + 300 * (1 + (extensions[i] ?? 0));
+        if (elapsed < end) return { block: i + 1, isBreak: true, end };
+        start = end;
+      }
+    }
+    return { block: blocks, isBreak: false, end: start };
+  });
+  readonly isBreak = computed(() => this.phase().isBreak);
+  readonly block = computed(() => this.phase().block);
   readonly blocks = computed(() => (this.session()?.duration ? this.session()!.duration / 25 : 0));
   readonly remaining = computed(() => {
     const elapsed = this.elapsed();
-    const phaseEnd = this.isBreak()
-      ? (Math.floor(elapsed / 1800) + 1) * 1800
-      : Math.floor(elapsed / 1800) * 1800 + 1500;
+    const phaseEnd = this.phase().end;
     const seconds = Math.max(0, Math.min(phaseEnd, this.totalSeconds()) - elapsed);
     return `${Math.floor(seconds / 60)
       .toString()
@@ -77,8 +95,11 @@ export class TimerComponent {
   readonly segments = computed(() =>
     Array.from({ length: Math.max(0, this.blocks() * 2 - 1) }, (_, index) => {
       const isBreak = index % 2 === 1;
-      const startsAt = Math.floor(index / 2) * 1800 + (isBreak ? 1500 : 0);
-      const seconds = isBreak ? 300 : 1500;
+      const blockIndex = Math.floor(index / 2);
+      const extensions = this.session()?.breakExtensions ?? [];
+      const previousExtra = extensions.slice(0, blockIndex).reduce((sum, count) => sum + count, 0);
+      const startsAt = blockIndex * 1800 + previousExtra * 300 + (isBreak ? 1500 : 0);
+      const seconds = isBreak ? 300 * (1 + (extensions[blockIndex] ?? 0)) : 1500;
       return {
         isBreak,
         progress: Math.max(0, Math.min(100, ((this.elapsed() - startsAt) / seconds) * 100)),
@@ -112,12 +133,14 @@ export class TimerComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {
+          if (Date.parse(session.serverTime) < this.serverAtSync) return;
           this.serverAtSync = Date.parse(session.serverTime);
           this.monotonicAtSync = performance.now();
           this.now.set(this.serverAtSync);
           this.session.set(session);
           this.state.set('active');
           this.error.set(null);
+          this.wasBreak = this.isBreak();
           this.tick();
         },
         error: (error: HttpErrorResponse) => {
@@ -135,7 +158,24 @@ export class TimerComponent {
   private tick(): void {
     if (this.state() !== 'active') return;
     this.now.set(this.serverAtSync + (performance.now() - this.monotonicAtSync));
+    const inBreak = this.isBreak();
+    const enteredBreak = inBreak && !this.wasBreak;
+    this.wasBreak = inBreak;
+    if (enteredBreak) this.heartbeat();
     if (this.elapsed() >= this.totalSeconds() && !this.error()) this.complete();
+  }
+
+  extendBreak(): void {
+    if (this.extending() || (!this.isBreak() && !this.pendingExtension)) return;
+    this.extending.set(true);
+    this.error.set(null);
+    this.operations.run(`session.${this.id}.extra-break`, (id) => this.sessions.extendBreak(this.id, id))
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.extending.set(false)))
+      .subscribe({
+        next: () => this.heartbeat(),
+        error: (error: HttpErrorResponse) =>
+          this.error.set(error.status === 409 ? 'rewards.insufficient' : 'rewards.actionError'),
+      });
   }
 
   complete(): void {
