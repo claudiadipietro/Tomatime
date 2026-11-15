@@ -1,0 +1,121 @@
+<app-main-header />
+<main class="calendar-page">
+  <a class="back-link" routerLink="/home"
+    ><span aria-hidden="true">←</span> {{ 'session.back' | translate }}</a
+  >
+  <h1>{{ 'calendar.title' | translate }}</h1>
+  <div class="calendar-layout">
+    <section class="calendar-panel" [attr.aria-label]="'calendar.title' | translate">
+      <div class="month-nav">
+        <button
+          type="button"
+          (click)="changeMonth(-1)"
+          [attr.aria-label]="'calendar.previous' | translate"
+        >
+          ‹
+        </button>
+        <h2 aria-live="polite">{{ monthLabel() }}</h2>
+        <button
+          type="button"
+          (click)="changeMonth(1)"
+          [attr.aria-label]="'calendar.next' | translate"
+        >
+          ›
+        </button>
+      </div>
+      <div class="weekdays">
+        @for (weekday of weekdays(); track $index) {
+          <span>{{ weekday }}</span>
+        }
+      </div>
+      <div class="days">
+        @for (day of days(); track day.key) {
+          <button
+            type="button"
+            class="day"
+            [class.outside]="!day.inMonth"
+            [class.selected]="day.key === selectedKey()"
+            [attr.aria-label]="
+              day.hasSessions
+                ? dateLabel(day) + ', ' + ('calendar.hasSessions' | translate)
+                : dateLabel(day)
+            "
+            [attr.aria-pressed]="day.key === selectedKey()"
+            (click)="select(day)"
+          >
+            {{ day.date.getDate() }}
+            @if (day.hasSessions) {
+              <span class="dot" aria-hidden="true"></span>
+            }
+          </button>
+        }
+      </div>
+      <p class="legend">
+        <span class="dot" aria-hidden="true"></span> {{ 'calendar.hasSessions' | translate }}
+      </p>
+    </section>
+    <section class="selected-panel" aria-labelledby="selected-date">
+      <h2 id="selected-date">{{ selectedLabel() }}</h2>
+      @if (loading()) {
+        <p role="status">{{ 'calendar.loading' | translate }}</p>
+      } @else if (error()) {
+        <div role="alert">
+          <p>{{ 'calendar.error' | translate }}</p>
+          <button class="secondary" type="button" (click)="load()">
+            {{ 'dashboard.retry' | translate }}
+          </button>
+        </div>
+      } @else if (selectedSessions().length === 0) {
+        <p>{{ 'calendar.empty' | translate }}</p>
+      } @else {
+        <ul class="session-list">
+          @for (session of selectedSessions(); track session.id) {
+            <li class="session-card">
+              <p class="session-time">🍅 {{ formatTime(session) }}</p>
+              @if (session.status !== 'Planned' && !session.actualStartTime) {
+                <p>{{ 'calendar.plannedTime' | translate }}</p>
+              }
+              <p>
+                {{
+                  (session.status === 'Cancelled' ? 'history.plannedDuration' : 'history.duration')
+                    | translate: { count: session.duration }
+                }}
+              </p>
+              <p>{{ 'calendar.status.' + session.status | translate }}</p>
+              @if (session.status === 'Planned') {
+                <p>{{ 'timer.reward' | translate: { count: (session.duration / 25) * 2 } }}</p>
+                <button
+                  class="secondary"
+                  type="button"
+                  [disabled]="starting() !== null"
+                  (click)="start(session)"
+                >
+                  {{ 'session.startPlanned' | translate }}
+                </button>
+              } @else if (session.status === 'Completed' || session.status === 'Cancelled') {
+                <p>{{ 'history.pomos' | translate: { count: session.pomosEarned } }}</p>
+                <a
+                  class="detail-link"
+                  [routerLink]="['/sessions/history', session.id]"
+                  [queryParams]="{ from: 'calendar', date: selectedKey() }"
+                  >{{ 'calendar.viewDetails' | translate }}</a
+                >
+              }
+            </li>
+          }
+        </ul>
+      }
+      @if (startError()) {
+        <p class="error" role="alert">{{ 'session.startError' | translate }}</p>
+      }
+      @if (selectedDateIsPast()) {
+        <p class="planning-unavailable">{{ 'calendar.pastDate' | translate }}</p>
+        <button class="primary" type="button" disabled>{{ 'planning.title' | translate }}</button>
+      } @else {
+        <button class="primary" type="button" (click)="planSelectedDate()">
+          {{ 'planning.title' | translate }}
+        </button>
+      }
+    </section>
+  </div>
+</main>

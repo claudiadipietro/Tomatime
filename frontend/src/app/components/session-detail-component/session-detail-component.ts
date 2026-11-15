@@ -28,6 +28,8 @@ export class SessionDetailComponent {
   readonly session = signal<SessionHistoryItem | null>(null);
   readonly loading = signal(true);
   readonly error = signal<'notFound' | 'error' | null>(null);
+  readonly fromCalendar = this.route.snapshot.queryParamMap.get('from') === 'calendar';
+  readonly calendarDate = this.route.snapshot.queryParamMap.get('date');
 
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.load());

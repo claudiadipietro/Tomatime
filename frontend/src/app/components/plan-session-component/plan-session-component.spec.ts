@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { provideTranslateService } from '@ngx-translate/core';
+import { vi } from 'vitest';
 import { routes } from '../../app.routes';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { authInterceptor } from '../../services/auth.interceptor';
@@ -63,6 +64,39 @@ describe('Plan session', () => {
     component.submit();
     expect(component.errorKey()).toBe('planning.invalidTime');
     http.expectNone('/api/session-plans');
+  });
+
+  it('limits the date picker to today and updates after midnight', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl('/sessions/plan', PlanSessionComponent);
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date(2026, 2, 16, 23, 59, 30));
+      component.refreshToday();
+      harness.detectChanges();
+      const input = harness.routeNativeElement!.querySelector<HTMLInputElement>('#planned-date')!;
+      expect(input.min).toBe('2026-03-16');
+      component.form.setValue({ date: '2026-03-16', time: '23:59' });
+      component.submit();
+      expect(component.errorKey()).toBe('planning.invalidTime');
+      http.expectNone('/api/session-plans');
+      vi.setSystemTime(new Date(2026, 2, 17, 0, 0, 1));
+      component.refreshToday();
+      harness.detectChanges();
+      expect(input.min).toBe('2026-03-17');
+      component.form.setValue({ date: '2026-03-17', time: '00:01' });
+      component.submit();
+      http
+        .expectOne('/api/session-plans')
+        .flush({
+          id: 2,
+          duration: 50,
+          plannedStartTime: new Date(2026, 2, 17, 0, 1).toISOString(),
+        });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('updates the duration and schedule from the visible controls', async () => {

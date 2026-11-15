@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { interval } from 'rxjs';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { SessionService } from '../../services/session.service';
+import { localDateKey } from '../../utils/local-date';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { SessionDurationComponent } from '../session-duration-component/session-duration-component';
 
@@ -25,16 +27,35 @@ export class PlanSessionComponent {
   private readonly sessions = inject(SessionService);
   private readonly auth = inject(AuthSessionService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly duration = signal(50);
   readonly submitting = signal(false);
   readonly planned = signal(false);
   readonly errorKey = signal<string | null>(null);
+  readonly today = signal(localDateKey(new Date()));
   readonly form = new FormGroup({
     date: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     time: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
   });
+  readonly fromCalendar = this.route.snapshot.queryParamMap.get('from') === 'calendar';
+  readonly calendarDate = this.route.snapshot.queryParamMap.get('date');
+
+  constructor() {
+    if (this.fromCalendar && this.calendarDate && /^\d{4}-\d{2}-\d{2}$/.test(this.calendarDate)) {
+      this.form.controls.date.setValue(this.calendarDate);
+    }
+    interval(30_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshToday());
+  }
+
+  @HostListener('document:visibilitychange')
+  @HostListener('window:focus')
+  refreshToday(): void {
+    this.today.set(localDateKey(new Date()));
+  }
 
   submit(): void {
     if (this.submitting() || this.planned()) return;
