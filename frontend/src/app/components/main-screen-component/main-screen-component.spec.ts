@@ -72,7 +72,7 @@ describe('Main screen navigation', () => {
     expect(auth.accessToken).toBeNull();
   });
 
-  it('starts the existing planned session by id and refreshes the dashboard', async () => {
+  it('starts the existing planned session by id and opens its timer', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/home', MainScreenComponent);
@@ -89,14 +89,14 @@ describe('Main screen navigation', () => {
     const request = http.expectOne('/api/session-starts/45');
     expect(request.request.method).toBe('POST');
     request.flush(null, { status: 204, statusText: 'No Content' });
-    http.expectOne('/api/dashboard').flush({
-      pomoBalance: 0,
-      nextSession: null,
-      focusMinutes: 0,
-      completedSessions: 0,
-    });
     await harness.fixture.whenStable();
-    expect(component.startMessage()).toBe(true);
+    expect(TestBed.inject(Router).url).toBe('/sessions/45/timer');
+    http.expectOne('/api/session-runs/45/heartbeat').flush({
+      id: 45,
+      duration: 50,
+      actualStartTime: new Date().toISOString(),
+      serverTime: new Date().toISOString(),
+    });
     http.expectNone('/api/session-starts');
   });
 

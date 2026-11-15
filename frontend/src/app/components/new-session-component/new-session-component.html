@@ -15,7 +15,6 @@
         [disabled]="submitting()"
         (durationChange)="changeDuration($event - duration())"
       />
-      <p class="notice">{{ 'session.timerUnavailable' | translate }}</p>
       @if (error()) {
         <p class="error" role="alert">{{ 'session.startError' | translate }}</p>
       }

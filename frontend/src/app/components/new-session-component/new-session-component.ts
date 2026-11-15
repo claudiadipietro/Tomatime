@@ -38,9 +38,10 @@ export class NewSessionComponent {
       .startSpontaneous(this.duration())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => {
+        next: (session) => {
           this.submitting.set(false);
           this.started.set(true);
+          void this.router.navigate(['/sessions', session.id, 'timer']);
         },
         error: (error: HttpErrorResponse) => {
           this.submitting.set(false);

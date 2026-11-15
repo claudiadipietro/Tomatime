@@ -15,8 +15,7 @@ export class MainHeaderComponent {
   private readonly router = inject(Router);
   menuOpen = false;
 
-  logout(): void {
-    this.session.clear();
-    void this.router.navigate(['/login']);
+  async logout(): Promise<void> {
+    if (await this.router.navigate(['/login'])) this.session.clear();
   }
 }
