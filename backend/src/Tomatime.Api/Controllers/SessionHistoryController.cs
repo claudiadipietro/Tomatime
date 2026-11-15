@@ -17,4 +17,13 @@ public sealed class SessionHistoryController(ISessionHistoryService history) : C
             return Unauthorized();
         return Ok(await history.GetHistoryAsync(userId));
     }
+
+    [HttpGet("{sessionId:int}")]
+    public async Task<IActionResult> GetItem(int sessionId)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+        var session = await history.GetHistoryItemAsync(userId, sessionId);
+        return session is null ? NotFound() : Ok(session);
+    }
 }

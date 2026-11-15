@@ -68,6 +68,17 @@
     "start": "Comenzar sesión",
     "starting": "Iniciando…"
   },
+  "sessionDetail": {
+    "title": "Detalle de la sesión",
+    "loading": "Cargando la sesión…",
+    "notFound": "No se ha encontrado esta sesión en tu historial.",
+    "error": "No se ha podido cargar la sesión. Inténtalo de nuevo.",
+    "completed": "Sesión completada",
+    "cancelled": "Sesión cancelada",
+    "timeUnknown": "Hora de inicio no disponible",
+    "endUnknown": "hora de finalización no disponible",
+    "back": "Volver al historial"
+  },
   "timer": {
     "title": "Sesión de concentración",
     "loading": "Preparando tu sesión…",

@@ -30,35 +30,37 @@
           </h2>
           <ul>
             @for (session of group.sessions; track session.id) {
-              <li class="session-card">
-                <div class="session-details">
-                  <strong>{{
-                    (session.status === 'Cancelled'
-                      ? 'history.plannedDuration'
-                      : 'history.duration'
-                    ) | translate: { count: session.duration }
-                  }}</strong>
-                  @if (session.actualStartTime; as start) {
-                    <span>
-                      {{ formatTime(start) }}
-                      @if (session.endedAt; as end) {
-                        – {{ formatTime(end) }}
-                      }
+              <li>
+                <a class="session-card" [routerLink]="['/sessions/history', session.id]">
+                  <div class="session-details">
+                    <strong>{{
+                      (session.status === 'Cancelled'
+                        ? 'history.plannedDuration'
+                        : 'history.duration'
+                      ) | translate: { count: session.duration }
+                    }}</strong>
+                    @if (session.actualStartTime; as start) {
+                      <span>
+                        {{ formatTime(start) }}
+                        @if (session.endedAt; as end) {
+                          – {{ formatTime(end) }}
+                        }
+                      </span>
+                    }
+                  </div>
+                  <div class="session-result">
+                    <span class="status" [class.status--cancelled]="session.status === 'Cancelled'">
+                      {{
+                        (session.status === 'Completed' ? 'history.completed' : 'history.cancelled')
+                          | translate
+                      }}
                     </span>
-                  }
-                </div>
-                <div class="session-result">
-                  <span class="status" [class.status--cancelled]="session.status === 'Cancelled'">
-                    {{
-                      (session.status === 'Completed' ? 'history.completed' : 'history.cancelled')
-                        | translate
-                    }}
-                  </span>
-                  <span
-                    >{{ 'history.pomos' | translate: { count: session.pomosEarned } }}
-                    <span aria-hidden="true">🍅</span></span
-                  >
-                </div>
+                    <span
+                      >{{ 'history.pomos' | translate: { count: session.pomosEarned } }}
+                      <span aria-hidden="true">🍅</span></span
+                    >
+                  </div>
+                </a>
               </li>
             }
           </ul>

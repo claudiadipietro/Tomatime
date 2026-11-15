@@ -1,0 +1,67 @@
+<app-main-header />
+<main class="detail-page">
+  <h1>{{ 'sessionDetail.title' | translate }}</h1>
+  @if (loading()) {
+    <p role="status">{{ 'sessionDetail.loading' | translate }}</p>
+  } @else if (error(); as errorKey) {
+    <div role="alert">
+      <p>
+        {{
+          (errorKey === 'notFound' ? 'sessionDetail.notFound' : 'sessionDetail.error') | translate
+        }}
+      </p>
+      @if (errorKey === 'error') {
+        <button class="primary" type="button" (click)="load()">
+          {{ 'dashboard.retry' | translate }}
+        </button>
+      }
+    </div>
+  } @else if (session(); as item) {
+    <div class="detail-card">
+      <p>
+        <span aria-hidden="true">{{ item.status === 'Completed' ? '✅' : '✖️' }}</span>
+        {{
+          (item.status === 'Completed' ? 'sessionDetail.completed' : 'sessionDetail.cancelled')
+            | translate
+        }}
+      </p>
+      <p>
+        <span aria-hidden="true">📚</span>
+        {{
+          (item.status === 'Completed' ? 'history.duration' : 'history.plannedDuration')
+            | translate: { count: item.duration }
+        }}
+      </p>
+      <p>
+        <span aria-hidden="true">🗓️</span>
+        {{
+          item.actualStartTime
+            ? formatDate(item.actualStartTime)
+            : ('history.unknownDate' | translate)
+        }}
+      </p>
+      <p>
+        <span aria-hidden="true">🕰️</span>
+        @if (item.actualStartTime; as start) {
+          {{ formatTime(start) }}
+          @if (item.endedAt; as end) {
+            –
+            @if (isDifferentDay(start, end)) {
+              {{ formatDate(end) }},
+            }
+            {{ formatTime(end) }}
+          } @else {
+            · {{ 'sessionDetail.endUnknown' | translate }}
+          }
+        } @else {
+          {{ 'sessionDetail.timeUnknown' | translate }}
+        }
+      </p>
+      <p>
+        <span aria-hidden="true">🍅</span>
+        {{ 'history.pomos' | translate: { count: item.pomosEarned } }}
+      </p>
+    </div>
+  }
+  <a class="primary" routerLink="/sessions/history">{{ 'sessionDetail.back' | translate }}</a>
+</main>

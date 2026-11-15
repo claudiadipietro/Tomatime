@@ -51,6 +51,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'sessions/history/:id',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/session-detail-component/session-detail-component').then(
+        ({ SessionDetailComponent }) => SessionDetailComponent,
+      ),
+  },
+  {
     path: 'sessions/new',
     canActivate: [authGuard],
     loadComponent: () =>

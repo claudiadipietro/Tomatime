@@ -68,6 +68,17 @@
     "start": "Start session",
     "starting": "Starting…"
   },
+  "sessionDetail": {
+    "title": "Session details",
+    "loading": "Loading the session…",
+    "notFound": "This session was not found in your history.",
+    "error": "The session could not be loaded. Please try again.",
+    "completed": "Session completed",
+    "cancelled": "Session cancelled",
+    "timeUnknown": "Start time unavailable",
+    "endUnknown": "end time unavailable",
+    "back": "Back to history"
+  },
   "timer": {
     "title": "Focus session",
     "loading": "Preparing your session…",
