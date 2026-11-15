@@ -17,6 +17,13 @@
   </div>
   @if (menuOpen) {
     <nav id="main-menu" class="main-menu" [attr.aria-label]="'dashboard.menu' | translate">
+      <a routerLink="/sessions/history" (click)="menuOpen = false">{{
+        'history.title' | translate
+      }}</a>
+      <span class="menu-unavailable" aria-disabled="true"
+        >{{ 'dashboard.account' | translate }}
+        <small>{{ 'dashboard.comingSoon' | translate }}</small></span
+      >
       <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
     </nav>
   }

@@ -1,0 +1,69 @@
+<app-main-header />
+<main class="history-page">
+  <a class="back-link" routerLink="/home"
+    ><span aria-hidden="true">←</span> {{ 'session.back' | translate }}</a
+  >
+  <h1>{{ 'history.title' | translate }}</h1>
+  @if (loading()) {
+    <p class="message" role="status">{{ 'history.loading' | translate }}</p>
+  } @else if (error()) {
+    <div class="message" role="alert">
+      <p>{{ 'history.error' | translate }}</p>
+      <button class="retry" type="button" (click)="load()">
+        {{ 'dashboard.retry' | translate }}
+      </button>
+    </div>
+  } @else if (sessions().length === 0) {
+    <p class="message">{{ 'history.empty' | translate }}</p>
+  } @else {
+    <div class="timeline">
+      @for (group of groups(); track group.key) {
+        <section class="day">
+          <h2>
+            @if (isToday(group.date)) {
+              {{ 'history.today' | translate }}
+            } @else if (group.date; as date) {
+              {{ formatDate(date) }}
+            } @else {
+              {{ 'history.unknownDate' | translate }}
+            }
+          </h2>
+          <ul>
+            @for (session of group.sessions; track session.id) {
+              <li class="session-card">
+                <div class="session-details">
+                  <strong>{{
+                    (session.status === 'Cancelled'
+                      ? 'history.plannedDuration'
+                      : 'history.duration'
+                    ) | translate: { count: session.duration }
+                  }}</strong>
+                  @if (session.actualStartTime; as start) {
+                    <span>
+                      {{ formatTime(start) }}
+                      @if (session.endedAt; as end) {
+                        – {{ formatTime(end) }}
+                      }
+                    </span>
+                  }
+                </div>
+                <div class="session-result">
+                  <span class="status" [class.status--cancelled]="session.status === 'Cancelled'">
+                    {{
+                      (session.status === 'Completed' ? 'history.completed' : 'history.cancelled')
+                        | translate
+                    }}
+                  </span>
+                  <span
+                    >{{ 'history.pomos' | translate: { count: session.pomosEarned } }}
+                    <span aria-hidden="true">🍅</span></span
+                  >
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+  }
+</main>
