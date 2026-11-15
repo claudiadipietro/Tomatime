@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
@@ -10,11 +12,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserDatabaseService _userDatabaseService;
     private readonly IUserRewardDatabaseService _userRewardDatabaseService;
+    private readonly IProfileService _profileService;
 
-    public UserController(IUserDatabaseService userDatabaseService, IUserRewardDatabaseService userRewardDatabaseService)
+    public UserController(IUserDatabaseService userDatabaseService, IUserRewardDatabaseService userRewardDatabaseService, IProfileService profileService)
     {
         _userDatabaseService = userDatabaseService;
         _userRewardDatabaseService = userRewardDatabaseService;
+        _profileService = profileService;
     }
 
     [HttpGet("profile/{userId}")]
@@ -58,9 +62,11 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("notifications/{userId}")]
+    [Authorize]
     public async Task<IActionResult> GetUserNotifications(int userId)
     {
-        var user = await _userDatabaseService.GetUserByIdAsync(userId);
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) || id != userId) return Unauthorized();
+        var user = await _profileService.GetAsync(userId);
         if (user == null)
         {
             return NotFound();
@@ -69,21 +75,11 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("notifications/{userId}")]
+    [Authorize]
     public async Task<IActionResult> UpdateUserNotifications(int userId, [FromBody] bool notificationsEnabled)
     {
-        var user = await _userDatabaseService.GetUserByIdAsync(userId);
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        user.NotificationsEnabled = notificationsEnabled;
-        var updatedUser = await _userDatabaseService.UpdateUserAsync(user);
-        if (updatedUser == null)
-        {
-            return BadRequest("Failed to update user notifications.");
-        }
-
-        return Ok(updatedUser.NotificationsEnabled);
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) || id != userId) return Unauthorized();
+        return await _profileService.UpdateNotificationsAsync(userId, notificationsEnabled)
+            ? Ok(notificationsEnabled) : NotFound();
     }
 }
