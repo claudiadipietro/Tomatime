@@ -48,7 +48,7 @@ public sealed class AuthController : ControllerBase
 
         return Ok(new
         {
-            message = "If the email exists, a password reset link has been sent.",
+            message = "If the email exists, we will try to send password reset instructions.",
         });
     }
 

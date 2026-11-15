@@ -35,7 +35,7 @@ describe('LoginComponent', () => {
     component.requestPasswordReset();
     TestBed.inject(HttpTestingController)
       .expectOne('/api/auth/forgot-password')
-      .flush({ message: 'If the email exists, a password reset link has been sent.' });
+      .flush({ message: 'If the email exists, we will try to send password reset instructions.' });
     await fixture.whenStable();
 
     expect(fixture.nativeElement.querySelector('[role="status"]')).toBeTruthy();

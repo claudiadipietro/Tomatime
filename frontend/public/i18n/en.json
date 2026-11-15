@@ -230,7 +230,7 @@
       "description": "Enter your email address and we will send instructions to reset your password.",
       "submit": "Send reset link",
       "submitting": "Sending…",
-      "success": "If that email is registered, reset instructions have been sent.",
+      "success": "If that email is registered, we will try to send reset instructions.",
       "backToLogin": "Remember your password? Sign in"
     },
     "resetPassword": {

@@ -230,7 +230,7 @@
       "description": "Introduce tu correo electrónico y te enviaremos las instrucciones para recuperar tu contraseña.",
       "submit": "Enviar enlace",
       "submitting": "Enviando…",
-      "success": "Si el correo está registrado, recibirás instrucciones para recuperar tu contraseña.",
+      "success": "Si el correo está registrado, intentaremos enviarte instrucciones para recuperar tu contraseña.",
       "backToLogin": "¿Recuerdas tu contraseña? Inicia sesión"
     },
     "resetPassword": {
