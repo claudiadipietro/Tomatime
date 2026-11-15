@@ -15,8 +15,10 @@ public sealed class AuthService: IAuthService
     private readonly IUserDatabaseService _userDatabaseService;
     private readonly IRepository<PasswordResetToken> _passwordResetTokenRepository;
     private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly IPasswordResetEmailSender _passwordResetEmailSender;
+    private readonly PasswordResetEmailQueue _passwordResetEmailQueue;
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _environment;
+    private readonly ILogger<AuthService> _logger;
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(24);
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromMinutes(30);
 
@@ -24,14 +26,18 @@ public sealed class AuthService: IAuthService
         IUserDatabaseService userDatabaseService,
         IRepository<PasswordResetToken> passwordResetTokenRepository,
         IPasswordHasher<User> passwordHasher,
-        IPasswordResetEmailSender passwordResetEmailSender,
-        IConfiguration configuration)
+        PasswordResetEmailQueue passwordResetEmailQueue,
+        IConfiguration configuration,
+        IHostEnvironment environment,
+        ILogger<AuthService> logger)
     {
         _userDatabaseService = userDatabaseService;
         _passwordResetTokenRepository = passwordResetTokenRepository;
         _passwordHasher = passwordHasher;
-        _passwordResetEmailSender = passwordResetEmailSender;
+        _passwordResetEmailQueue = passwordResetEmailQueue;
         _configuration = configuration;
+        _environment = environment;
+        _logger = logger;
     }
 
 
@@ -82,6 +88,7 @@ public sealed class AuthService: IAuthService
 
     public async Task RequestPasswordResetAsync(ForgotPasswordRequest request)
     {
+        var frontendUrl = GetResetPasswordUrl();
         var email = NormalizeEmail(request.Email);
         var user = await _userDatabaseService.GetUserByEmailAsync(email);
 
@@ -102,8 +109,11 @@ public sealed class AuthService: IAuthService
         await _passwordResetTokenRepository.AddAsync(resetToken);
         await _passwordResetTokenRepository.SaveChangesAsync();
 
-        var resetUrl = BuildResetUrl(rawToken, user.Email);
-        await _passwordResetEmailSender.SendAsync(user.Email, resetUrl);
+        var resetUrl = $"{frontendUrl}?token={Uri.EscapeDataString(rawToken)}";
+        if (!_passwordResetEmailQueue.TryEnqueue(new PasswordResetEmail(user.Email, resetUrl)))
+        {
+            _logger.LogError("Password reset email could not be queued because the queue is full.");
+        }
     }
 
     public async Task<bool> ResetPasswordAsync(ResetPasswordRequest request)
@@ -174,12 +184,26 @@ public sealed class AuthService: IAuthService
         return email.Trim().ToLowerInvariant();
     }
 
-    private string BuildResetUrl(string rawToken, string email)
+    private string GetResetPasswordUrl()
     {
-        var frontendUrl = _configuration["Frontend:ResetPasswordUrl"]
-            ?? "http://localhost:4200/reset-password";
+        var frontendUrl = _configuration["Frontend:ResetPasswordUrl"];
+        if (string.IsNullOrWhiteSpace(frontendUrl) && _environment.IsDevelopment())
+        {
+            frontendUrl = "http://localhost:4200/reset-password";
+        }
 
-        return $"{frontendUrl}?token={Uri.EscapeDataString(rawToken)}&email={Uri.EscapeDataString(email)}";
+        if (!Uri.TryCreate(frontendUrl, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttps &&
+                !(_environment.IsDevelopment() && uri.IsLoopback && uri.Scheme == Uri.UriSchemeHttp)) ||
+            (!_environment.IsDevelopment() && uri.IsLoopback) ||
+            !string.IsNullOrEmpty(uri.UserInfo) ||
+            !string.IsNullOrEmpty(uri.Query) ||
+            !string.IsNullOrEmpty(uri.Fragment))
+        {
+            throw new InvalidOperationException("Frontend:ResetPasswordUrl must be an absolute HTTPS URL without credentials, query or fragment; HTTP localhost is allowed only in development.");
+        }
+
+        return uri.AbsoluteUri;
     }
 
     private static string CreateRawResetToken()

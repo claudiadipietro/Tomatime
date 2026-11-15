@@ -31,6 +31,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
             .As<IPasswordResetEmailSender>()
             .InstancePerLifetimeScope();
 
+        builder.RegisterType<GmailTransport>()
+            .As<IGmailTransport>()
+            .InstancePerLifetimeScope();
+
         builder.RegisterType<RewardDatabaseService>()
             .As<IRewardDatabaseService>()
             .InstancePerLifetimeScope();

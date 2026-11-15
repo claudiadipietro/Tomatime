@@ -20,9 +20,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddSingleton<ReminderWakeup>();
+builder.Services.AddSingleton<PasswordResetEmailQueue>();
 builder.Services.AddSingleton<IWebPushSender, WebPushSender>();
 builder.Services.AddHostedService<ExpiredSessionCleanupService>();
 builder.Services.AddHostedService<SessionReminderService>();
+builder.Services.AddHostedService<PasswordResetEmailWorker>();
 
 var jwtKey = builder.Configuration["Jwt:Key"]
     ?? throw new InvalidOperationException("JWT signing key is not configured.");

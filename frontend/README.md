@@ -34,7 +34,7 @@ src/app/
 
 Keep frontend components, models, and services in their respective folders under `src/app`. The .NET backend has its own independent model and service layers.
 
-Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. The backend currently logs reset links instead of sending email; configure an email sender before relying on delivery.
+Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. Configure Gmail as described below to send these links by email.
 
 After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the focus durations (in minutes) of completed sessions. The rewards screen shows the balance and allows users to buy and activate themes or purchase extra breaks.
 
@@ -42,7 +42,32 @@ Extra breaks bought in the shop are applied at the first break of a later eligib
 
 The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. The timer includes a five-minute break between focus blocks. Completing the entire session awards two pomos per focus block, once; leaving or reloading cancels it without a reward. The timer requires an active connection: if activity is not received for two minutes, the server cancels the session.
 
-The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC. Session reminders are not implemented.
+The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC.
+
+## Password reset email
+
+The API sends password reset messages using Gmail SMTP with STARTTLS. The link expires after 30 minutes. Sending happens in a bounded in-memory queue so that SMTP response time does not reveal whether an account exists. The API returns the same generic response whether the account exists or delivery fails; delivery failures and a full queue are logged on the API without the address, password or reset link. Messages waiting in memory are lost if the API stops, and there is no automatic retry: after correcting a delivery problem or restarting the API, request a new link.
+
+To configure local development:
+
+1. Enable 2-Step Verification on the Google account that will send the emails. Create an [app password](https://support.google.com/accounts/answer/185833) for Tomatime. App passwords may be unavailable for some accounts (for example, certain work or school accounts).
+2. From the repository root, store the sending Gmail address in .NET user secrets, replacing the example with the actual address:
+
+   ```bash
+   dotnet user-secrets set "Gmail:Address" "your-address@gmail.com" --project backend/src/Tomatime.Api
+   ```
+
+3. Store the app password without putting it into shell history. Paste its 16 characters without spaces when prompted; nothing will appear while typing:
+
+   ```bash
+   bash -c 'read -rs -p "Gmail app password: " password; echo; dotnet user-secrets set "Gmail:AppPassword" "$password" --project backend/src/Tomatime.Api >/dev/null'
+   ```
+
+4. Restart the API so it reads the new secrets. Request a reset from the login screen for an existing account and check its inbox and spam folder. In development the link defaults to `http://localhost:4200/reset-password`; open it on the same computer that runs the frontend.
+
+For production, configure `Gmail__Address` and `Gmail__AppPassword` as environment variables or hosting secrets, and set `Frontend__ResetPasswordUrl` to the public HTTPS address ending in `/reset-password`, for example `https://your-app.example.com/reset-password`. Use the actual frontend URL, not localhost. A missing or invalid production URL causes every reset request to fail; missing Gmail credentials or SMTP failures are logged without revealing whether a requested account exists. SMTP access to `smtp.gmail.com:587` must be allowed by the host. Gmail imposes sending limits and can restrict app passwords; it is best suited to development or small deployments.
+
+Never commit the app password or share it in chat. User secrets are local development storage, not a production secret manager.
 
 The calendar shows sessions by local start date. Planned sessions use their planned start; other sessions use their actual start, or the planned time when the actual start is unavailable. Select a day to see its sessions, open past session details, start planned sessions, or plan a new session with the selected date prefilled.
 
