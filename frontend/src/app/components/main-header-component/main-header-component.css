@@ -48,8 +48,7 @@
 }
 
 .main-menu button,
-.main-menu a,
-.menu-unavailable {
+.main-menu a {
   background: none;
   border: 0;
   color: var(--color-primary-text);
@@ -61,13 +60,6 @@
 .main-menu a,
 .main-menu button {
   cursor: pointer;
-}
-.menu-unavailable {
-  color: var(--color-text-subtle);
-}
-.menu-unavailable small {
-  display: block;
-  font-size: 0.8rem;
 }
 .main-menu a:hover,
 .main-menu button:hover {
