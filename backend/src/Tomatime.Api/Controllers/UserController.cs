@@ -1,22 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
 namespace Tomatime.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/users")]
 public class UserController : ControllerBase
 {
-    private readonly IUserDatabaseService _userDatabaseService;
     private readonly IUserRewardDatabaseService _userRewardDatabaseService;
     private readonly IProfileService _profileService;
 
-    public UserController(IUserDatabaseService userDatabaseService, IUserRewardDatabaseService userRewardDatabaseService, IProfileService profileService)
+    public UserController(IUserRewardDatabaseService userRewardDatabaseService, IProfileService profileService)
     {
-        _userDatabaseService = userDatabaseService;
         _userRewardDatabaseService = userRewardDatabaseService;
         _profileService = profileService;
     }
@@ -24,48 +22,27 @@ public class UserController : ControllerBase
     [HttpGet("profile/{userId}")]
     public async Task<IActionResult> GetUserById(int userId)
     {
-        var user = await _userDatabaseService.GetUserByIdAsync(userId);
+        if (!IsCurrentUser(userId)) return Unauthorized();
+        var user = await _profileService.GetAsync(userId);
         if (user == null)
         {
             return NotFound();
         }
         return Ok(user);
-    }
-
-    [HttpGet("email/{email}")]
-    public async Task<IActionResult> GetUserByEmail(string email)
-    {
-        var user = await _userDatabaseService.GetUserByEmailAsync(email);
-        if (user == null)
-        {
-            return NotFound();
-        }
-        return Ok(user);
-    }
-
-    [HttpDelete("{userId}")]
-    public async Task<IActionResult> DeleteUser(int userId)
-    {
-        var success = await _userDatabaseService.DeleteUserAsync(userId);
-        if (!success)
-        {
-            return NotFound();
-        }
-        return NoContent();
     }
 
     [HttpGet("{userId}/rewards")]
     public async Task<IActionResult> GetUserRewards(int userId)
     {
+        if (!IsCurrentUser(userId)) return Unauthorized();
         var userRewards = await _userRewardDatabaseService.GetUserRewardsByUserIdAsync(userId);
         return Ok(userRewards);
     }
 
     [HttpGet("notifications/{userId}")]
-    [Authorize]
     public async Task<IActionResult> GetUserNotifications(int userId)
     {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) || id != userId) return Unauthorized();
+        if (!IsCurrentUser(userId)) return Unauthorized();
         var user = await _profileService.GetAsync(userId);
         if (user == null)
         {
@@ -75,11 +52,13 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("notifications/{userId}")]
-    [Authorize]
     public async Task<IActionResult> UpdateUserNotifications(int userId, [FromBody] bool notificationsEnabled)
     {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) || id != userId) return Unauthorized();
+        if (!IsCurrentUser(userId)) return Unauthorized();
         return await _profileService.UpdateNotificationsAsync(userId, notificationsEnabled)
             ? Ok(notificationsEnabled) : NotFound();
     }
+
+    private bool IsCurrentUser(int userId) =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) && id == userId;
 }

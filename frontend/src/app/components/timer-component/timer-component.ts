@@ -17,6 +17,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
 import { ActiveSession, SessionService } from '../../services/session.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { RewardOperationService } from '../../services/reward-operation.service';
+import { API_ORIGIN, apiUrl } from '../../services/api-url';
 
 @Component({
   selector: 'app-timer',
@@ -28,6 +29,7 @@ export class TimerComponent {
   private readonly sessions = inject(SessionService);
   private readonly operations = inject(RewardOperationService);
   private readonly auth = inject(AuthSessionService);
+  private readonly apiOrigin = inject(API_ORIGIN);
   private readonly destroyRef = inject(DestroyRef);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
   private readonly token = this.auth.accessToken ?? '';
@@ -245,7 +247,7 @@ export class TimerComponent {
   @HostListener('window:pagehide')
   onPageHide(): void {
     if (this.state() === 'completed' || this.state() === 'ended' || !this.token) return;
-    void fetch(`/api/session-runs/${this.id}/cancel`, {
+    void fetch(apiUrl(`/api/session-runs/${this.id}/cancel`, this.apiOrigin), {
       method: 'POST',
       headers: { Authorization: `Bearer ${this.token}` },
       keepalive: true,

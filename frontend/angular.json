@@ -49,6 +49,14 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "cloudflare": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/api-origin.ts",
+                  "with": "src/app/config/api-origin.cloudflare.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
