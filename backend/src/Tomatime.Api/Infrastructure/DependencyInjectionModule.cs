@@ -62,6 +62,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<RewardShopService>()
             .As<IRewardShopService>()
             .InstancePerLifetimeScope();
+
+        builder.RegisterType<ProfileService>()
+            .As<IProfileService>()
+            .InstancePerLifetimeScope();
         
         builder.RegisterType<ThemeDatabaseService>()
             .As<IThemeDatabaseService>()
