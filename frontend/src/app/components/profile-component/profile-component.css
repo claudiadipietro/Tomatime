@@ -12,6 +12,7 @@ button { border-radius: 0.65rem; cursor: pointer; font-weight: 600; min-height: 
 .primary { background: var(--color-primary); border: 2px solid var(--color-primary); color: var(--color-on-primary); }
 .toggle { background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); width: 100%; }
 .toggle[aria-pressed='true'] { border-color: var(--color-primary); color: var(--color-primary-text); }
+.toggle + .toggle { margin-top: 0.6rem; }
 button:disabled { cursor: wait; opacity: 0.6; }
 .settings { background: var(--color-surface-control); border-radius: 0.8rem; padding: 1rem; }
 .settings p { line-height: 1.5; margin: 0 0 1rem; }

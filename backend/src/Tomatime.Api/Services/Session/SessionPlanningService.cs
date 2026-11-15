@@ -5,7 +5,8 @@ namespace Tomatime.Api.Services;
 
 public sealed class SessionPlanningService(
     IUserDatabaseService users,
-    ISessionDatabaseService sessions) : ISessionPlanningService
+    ISessionDatabaseService sessions,
+    ReminderWakeup? reminders = null) : ISessionPlanningService
 {
     public async Task<SessionPlanningResult> PlanAsync(int userId, int duration, DateTimeOffset? plannedStartTime)
     {
@@ -28,6 +29,7 @@ public sealed class SessionPlanningService(
         var created = await sessions.CreateSessionAsync(session)
             ?? throw new InvalidOperationException("Failed to plan the session.");
 
+        reminders?.Trigger();
         return new(SessionPlanningStatus.Planned,
             new PlannedSessionResponse(created.Id, created.Duration, created.PlannedStartTime));
     }

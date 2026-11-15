@@ -66,6 +66,8 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<ProfileService>()
             .As<IProfileService>()
             .InstancePerLifetimeScope();
+
+        builder.RegisterType<PushSubscriptionService>().AsSelf().InstancePerLifetimeScope();
         
         builder.RegisterType<ThemeDatabaseService>()
             .As<IThemeDatabaseService>()
