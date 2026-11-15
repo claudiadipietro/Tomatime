@@ -65,7 +65,7 @@ public sealed class SessionReminderService(
                     {
                         title, body, icon = "/icons/icon-192x192.png",
                         tag = $"session-reminder-{session.Id}",
-                        data = new { onActionClick = new Dictionary<string, object> { ["default"] = new { operation = "openWindow", url = "/sessions/calendar" } } }
+                        data = new { onActionClick = new Dictionary<string, object> { ["default"] = new { operation = "focusLastFocusedOrOpen", url = "/sessions/calendar" } } }
                     }
                 });
                 try

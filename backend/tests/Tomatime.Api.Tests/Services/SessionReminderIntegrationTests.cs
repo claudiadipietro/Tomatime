@@ -58,8 +58,10 @@ public class SessionReminderIntegrationTests
                 Assert.Contains("Tu sesión", document.RootElement.GetProperty("notification").GetProperty("title").GetString());
             });
             using var json = JsonDocument.Parse(sender.Sent[0]);
-            Assert.Equal("openWindow", json.RootElement.GetProperty("notification").GetProperty("data")
-                .GetProperty("onActionClick").GetProperty("default").GetProperty("operation").GetString());
+            var click = json.RootElement.GetProperty("notification").GetProperty("data")
+                .GetProperty("onActionClick").GetProperty("default");
+            Assert.Equal("focusLastFocusedOrOpen", click.GetProperty("operation").GetString());
+            Assert.Equal("/sessions/calendar", click.GetProperty("url").GetString());
             await worker.SendDueAsync(db, CancellationToken.None);
             Assert.Equal(2, sender.Sent.Count);
             db.PushDevices.Add(new PushDevice { UserId = user.Id, Endpoint = "https://fcm.googleapis.com/test-" + Guid.NewGuid(), P256dh = "test", Auth = "test", Language = "en" });
