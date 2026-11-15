@@ -54,6 +54,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<SessionHistoryService>()
             .As<ISessionHistoryService>()
             .InstancePerLifetimeScope();
+
+        builder.RegisterType<SessionCalendarService>()
+            .As<ISessionCalendarService>()
+            .InstancePerLifetimeScope();
         
         builder.RegisterType<ThemeDatabaseService>()
             .As<IThemeDatabaseService>()
