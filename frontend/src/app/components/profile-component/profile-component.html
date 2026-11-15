@@ -23,13 +23,19 @@
       @if (notificationsOpen()) {
         <section id="notification-settings" class="settings" [attr.aria-label]="'profile.notifications' | translate">
           <p>{{ 'profile.notificationsNote' | translate }}</p>
+          <p>{{ (deviceSubscribed() ? 'profile.deviceOn' : 'profile.deviceOff') | translate }}</p>
           <button type="button" class="toggle" [attr.aria-pressed]="user.notificationsEnabled" [disabled]="notificationBusy()"
             (click)="updateNotifications(!user.notificationsEnabled)">
             {{ (user.notificationsEnabled ? 'profile.notificationsOn' : 'profile.notificationsOff') | translate }}
           </button>
-          @if (notificationError()) { <p class="error" role="alert">{{ 'profile.notificationError' | translate }}</p> }
+          @if (user.notificationsEnabled && !deviceSubscribed()) {
+            <button type="button" class="toggle" [disabled]="notificationBusy()" (click)="updateNotifications(true)">
+              {{ 'profile.activateDevice' | translate }}
+            </button>
+          }
         </section>
       }
+      @if (notificationError()) { <p class="error" role="alert">{{ notificationError()! | translate }}</p> }
 
       <button type="button" class="outline" [attr.aria-expanded]="passwordOpen()" aria-controls="password-settings"
         (click)="passwordOpen.set(!passwordOpen())">{{ 'profile.changePassword' | translate }}</button>

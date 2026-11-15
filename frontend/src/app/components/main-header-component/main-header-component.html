@@ -22,6 +22,7 @@
       }}</a>
       <a routerLink="/profile" (click)="menuOpen = false">{{ 'profile.title' | translate }}</a>
       <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
+      @if (logoutError) { <p role="alert">{{ 'profile.logoutError' | translate }}</p> }
     </nav>
   }
 </header>

@@ -2,12 +2,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { Profile, ProfileService } from '../../services/profile.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
+import { PushNotificationsService } from '../../services/push-notifications.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-profile',
@@ -20,13 +22,16 @@ export class ProfileComponent {
   private readonly auth = inject(AuthSessionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly push = inject(PushNotificationsService);
 
   readonly profile = signal<Profile | null>(null);
   readonly loading = signal(true);
   readonly loadError = signal(false);
   readonly notificationsOpen = signal(false);
   readonly notificationBusy = signal(false);
-  readonly notificationError = signal(false);
+  readonly notificationError = signal<string | null>(null);
+  readonly deviceSubscribed = signal(false);
+  readonly pushSupported = this.push.supported;
   readonly passwordOpen = signal(false);
   readonly passwordBusy = signal(false);
   readonly passwordError = signal<string | null>(null);
@@ -39,9 +44,16 @@ export class ProfileComponent {
   });
 
   constructor() {
+    if (inject(ActivatedRoute).snapshot.queryParamMap.has('logoutError'))
+      this.notificationError.set('profile.logoutError');
     this.load();
+    void this.refreshDevice();
   }
 
+  private async refreshDevice(): Promise<void> {
+    try { this.deviceSubscribed.set(await this.push.registered()); }
+    catch { this.notificationError.set('profile.pushError'); }
+  }
   load(): void {
     this.loading.set(true);
     this.loadError.set(false);
@@ -51,16 +63,24 @@ export class ProfileComponent {
     });
   }
 
-  updateNotifications(enabled: boolean): void {
+  async updateNotifications(enabled: boolean): Promise<void> {
     if (this.notificationBusy() || !this.profile()) return;
     this.notificationBusy.set(true);
-    this.notificationError.set(false);
-    this.service.updateNotifications(enabled)
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.notificationBusy.set(false)))
-      .subscribe({
-        next: () => this.profile.update((profile) => profile ? { ...profile, notificationsEnabled: enabled } : null),
-        error: () => this.notificationError.set(true),
-      });
+    this.notificationError.set(null);
+    try {
+      if (enabled) {
+        if (!this.pushSupported) { this.notificationError.set('profile.pushUnsupported'); return; }
+        await this.push.subscribe();
+        this.deviceSubscribed.set(true);
+      }
+      await firstValueFrom(this.service.updateNotifications(enabled));
+      this.profile.update((profile) => profile ? { ...profile, notificationsEnabled: enabled } : null);
+    } catch (error) {
+      this.notificationError.set(error instanceof DOMException && error.name === 'NotAllowedError'
+        ? 'profile.pushDenied'
+        : error instanceof HttpErrorResponse && error.status === 503
+          ? 'profile.pushNotConfigured' : 'profile.notificationError');
+    } finally { this.notificationBusy.set(false); }
   }
 
   changePassword(): void {
@@ -84,6 +104,12 @@ export class ProfileComponent {
   }
 
   async logout(): Promise<void> {
-    if (await this.router.navigate(['/login'])) this.auth.clear();
+    this.notificationError.set(null);
+    try {
+      await this.push.unsubscribe();
+      if (await this.router.navigate(['/login'])) this.auth.clear();
+    } catch {
+      this.notificationError.set('profile.logoutError');
+    }
   }
 }

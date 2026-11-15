@@ -48,7 +48,7 @@ The calendar shows sessions by local start date. Planned sessions use their plan
 
 The menu links to the authenticated session history, showing completed and cancelled sessions grouped by local start date. Each entry opens its detail page. Cancelled durations are planned focus time, not necessarily time spent. The end time is shown when recorded; older sessions and sessions cancelled after lost activity may not have one.
 
-The menu also links to the profile, where users can see their balance and active theme, save their notification preference, and change their password by providing the current one. Saving the notification preference does not enable reminders; reminders are not implemented yet.
+The menu also links to the profile, where users can see their balance and active theme, manage notifications, and change their password by providing the current one.
 
 ## Code scaffolding
 
@@ -85,6 +85,14 @@ The production build includes Angular's service worker and the web app manifest:
 The service worker caches the application shell and static assets; it does not cache API responses, which may contain user-specific data. This provides offline access to the shell and downloaded assets, but backend-dependent features still require a network connection.
 
 To try installation, build the production version and serve its output from HTTPS (or `localhost`). The service worker is intentionally disabled by `ng serve` in development.
+
+### Push reminders
+
+The backend sends a Web Push reminder per registered device about five minutes before a planned session. Sessions planned closer to their start trigger an immediate dispatch; a background worker also checks every 15 seconds. The API must be running, and delivery depends on the push provider, browser and operating system. Reminders are not sent for sessions already started or past their start time; messages expire at the planned start time. If delivery fails, the worker retries until then. A crash after provider acceptance but before the delivery is recorded can result in a duplicate.
+
+Set `WebPush:PublicKey`, `WebPush:PrivateKey` and `WebPush:Subject` (a `mailto:` contact or HTTPS URL) on the API. Generate one persistent VAPID key pair, for example with `npx web-push generate-vapid-keys`; keep the private key in user secrets locally or a secret manager in production, never in the repository. For local configuration use `dotnet user-secrets set "WebPush:PublicKey" "<public-key>" --project backend/src/Tomatime.Api`, and similarly for the private key and subject. Alternatively use environment variables `WebPush__PublicKey`, `WebPush__PrivateKey`, and `WebPush__Subject`. Changing the keys requires users to re-register their devices. Without these values the application remains usable, but enabling push returns an error.
+
+Use the production build on HTTPS or localhost, with `/api` proxied to the backend, open **My profile**, enable notifications and register each device. Grant permission in the browser and operating system. On iOS/iPadOS Web Push requires a supported OS and installing the PWA to the Home Screen; desktop browsers also support notifications, subject to browser and OS settings. The PWA does not need to be open, but the platform may suspend delivery. Logging out removes the current device subscription; the device must be activated again after logging back in. Disabling the account preference suppresses reminders on all registered devices. A notification already accepted by a push provider cannot be recalled, but expires at the scheduled start. Supported push endpoints are limited to Google, Mozilla and Apple services. A subscription belongs to one account at a time in a browser profile.
 
 ## Localization
 
