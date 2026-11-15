@@ -43,6 +43,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'profile',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/profile-component/profile-component').then(
+        ({ ProfileComponent }) => ProfileComponent,
+      ),
+  },
+  {
     path: 'rewards',
     canActivate: [authGuard],
     loadComponent: () =>
