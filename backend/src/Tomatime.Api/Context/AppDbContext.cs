@@ -11,6 +11,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 	public DbSet<Session> Sessions => Set<Session>();
 	public DbSet<UserReward> UserRewards => Set<UserReward>();
 	public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+	public DbSet<RewardOperation> RewardOperations => Set<RewardOperation>();
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -38,7 +39,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 				.WithMany()
 				.HasForeignKey(reward => reward.ThemeId)
 				.OnDelete(DeleteBehavior.Restrict);
+			entity.HasData(
+				new Reward { Id = RewardCatalog.Pink, Name = "pink", Description = "Pink theme", Cost = 5, Type = RewardType.Theme, ThemeId = RewardCatalog.Pink },
+				new Reward { Id = RewardCatalog.Blue, Name = "blue", Description = "Blue theme", Cost = 5, Type = RewardType.Theme, ThemeId = RewardCatalog.Blue },
+				new Reward { Id = RewardCatalog.ExtraBreak, Name = "extra-break", Description = "Five extra minutes of break", Cost = 5, Type = RewardType.ExtraBreak });
 		});
+
+		modelBuilder.Entity<Theme>().HasData(
+			new Theme { Id = RewardCatalog.Pink, Name = "pink" },
+			new Theme { Id = RewardCatalog.Blue, Name = "blue" });
 
 		modelBuilder.Entity<Session>(entity =>
 		{
@@ -78,6 +87,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 				.WithMany()
 				.HasForeignKey(token => token.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
+		});
+		modelBuilder.Entity<RewardOperation>(entity =>
+		{
+			entity.HasKey(operation => operation.Id);
+			entity.Property(operation => operation.Kind).HasMaxLength(32).IsRequired();
+			entity.HasOne<User>().WithMany().HasForeignKey(operation => operation.UserId).OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne<Reward>().WithMany().HasForeignKey(operation => operation.RewardId).OnDelete(DeleteBehavior.Restrict);
 		});
 	}
 }

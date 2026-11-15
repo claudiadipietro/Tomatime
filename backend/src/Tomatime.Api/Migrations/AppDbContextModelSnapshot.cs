@@ -85,6 +85,66 @@ namespace Tomatime.Api.Migrations
                     b.HasIndex("ThemeId");
 
                     b.ToTable("Rewards");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            Cost = 5,
+                            Description = "Pink theme",
+                            Name = "pink",
+                            ThemeId = -1,
+                            Type = "Theme"
+                        },
+                        new
+                        {
+                            Id = -2,
+                            Cost = 5,
+                            Description = "Blue theme",
+                            Name = "blue",
+                            ThemeId = -2,
+                            Type = "Theme"
+                        },
+                        new
+                        {
+                            Id = -3,
+                            Cost = 5,
+                            Description = "Five extra minutes of break",
+                            Name = "extra-break",
+                            Type = "ExtraBreak"
+                        });
+                });
+
+            modelBuilder.Entity("Tomatime.Api.Models.RewardOperation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<int>("RewardId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SessionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RewardId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RewardOperations");
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.Session", b =>
@@ -97,6 +157,10 @@ namespace Tomatime.Api.Migrations
 
                     b.Property<DateTime?>("ActualStartTime")
                         .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<int[]>("BreakExtensions")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
@@ -116,6 +180,9 @@ namespace Tomatime.Api.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("StoredBreakApplied")
+                        .HasColumnType("boolean");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -142,6 +209,18 @@ namespace Tomatime.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Themes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = -1,
+                            Name = "pink"
+                        },
+                        new
+                        {
+                            Id = -2,
+                            Name = "blue"
+                        });
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.User", b =>
@@ -228,6 +307,21 @@ namespace Tomatime.Api.Migrations
                         .WithMany()
                         .HasForeignKey("ThemeId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("Tomatime.Api.Models.RewardOperation", b =>
+                {
+                    b.HasOne("Tomatime.Api.Models.Reward", null)
+                        .WithMany()
+                        .HasForeignKey("RewardId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Tomatime.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.Session", b =>

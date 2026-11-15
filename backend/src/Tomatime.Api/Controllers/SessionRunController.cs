@@ -40,4 +40,19 @@ public sealed class SessionRunController(ISessionRunService sessions) : Controll
             _ => NotFound(),
         };
     }
+
+    [HttpPost("extend-break")]
+    public async Task<IActionResult> ExtendBreak(int sessionId, RewardPurchaseRequest request)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+            return Unauthorized();
+        var result = await sessions.ExtendBreakAsync(userId, sessionId, request.OperationId);
+        return result.Status switch
+        {
+            RewardActionStatus.Success when result.State is not null => Ok(result.State),
+            RewardActionStatus.NotFound => NotFound(),
+            RewardActionStatus.InsufficientBalance => Conflict(new { message = "Insufficient balance." }),
+            _ => BadRequest(new { message = "A break is not currently active." }),
+        };
+    }
 }

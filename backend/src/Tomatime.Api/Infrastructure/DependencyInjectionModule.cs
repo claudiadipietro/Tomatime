@@ -58,6 +58,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<SessionCalendarService>()
             .As<ISessionCalendarService>()
             .InstancePerLifetimeScope();
+
+        builder.RegisterType<RewardShopService>()
+            .As<IRewardShopService>()
+            .InstancePerLifetimeScope();
         
         builder.RegisterType<ThemeDatabaseService>()
             .As<IThemeDatabaseService>()
