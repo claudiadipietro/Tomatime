@@ -20,10 +20,7 @@
       <a routerLink="/sessions/history" (click)="menuOpen = false">{{
         'history.title' | translate
       }}</a>
-      <span class="menu-unavailable" aria-disabled="true"
-        >{{ 'dashboard.account' | translate }}
-        <small>{{ 'dashboard.comingSoon' | translate }}</small></span
-      >
+      <a routerLink="/profile" (click)="menuOpen = false">{{ 'profile.title' | translate }}</a>
       <button type="button" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
     </nav>
   }

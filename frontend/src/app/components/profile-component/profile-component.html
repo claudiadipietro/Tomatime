@@ -1,0 +1,55 @@
+<app-main-header />
+<main class="profile-page">
+  <a class="back-link" routerLink="/home">‹ {{ 'rewards.back' | translate }}</a>
+  <h1>{{ 'profile.title' | translate }}</h1>
+  @if (loading()) {
+    <p class="message" role="status">{{ 'profile.loading' | translate }}</p>
+  } @else if (loadError()) {
+    <div class="message" role="alert">
+      <p>{{ 'profile.loadError' | translate }}</p>
+      <button type="button" class="outline" (click)="load()">{{ 'profile.retry' | translate }}</button>
+    </div>
+  } @else if (profile(); as user) {
+    <div class="profile-content">
+      <dl class="profile-details">
+        <div><dt>{{ 'profile.name' | translate }}</dt><dd><span aria-hidden="true">👤</span> {{ user.name }}</dd></div>
+        <div><dt>{{ 'profile.email' | translate }}</dt><dd><span aria-hidden="true">✉️</span> {{ user.email }}</dd></div>
+        <div><dt>{{ 'profile.balanceLabel' | translate }}</dt><dd><span aria-hidden="true">🍅</span> {{ 'profile.balance' | translate: { count: user.pomoBalance } }}</dd></div>
+        <div><dt>{{ 'profile.themeLabel' | translate }}</dt><dd><span aria-hidden="true">🎨</span> {{ 'profile.theme' | translate: { theme: ('rewards.theme.' + user.currentTheme | translate) } }}</dd></div>
+      </dl>
+
+      <button type="button" class="outline" [attr.aria-expanded]="notificationsOpen()" aria-controls="notification-settings"
+        (click)="notificationsOpen.set(!notificationsOpen())">🔔 {{ 'profile.notifications' | translate }}</button>
+      @if (notificationsOpen()) {
+        <section id="notification-settings" class="settings" [attr.aria-label]="'profile.notifications' | translate">
+          <p>{{ 'profile.notificationsNote' | translate }}</p>
+          <button type="button" class="toggle" [attr.aria-pressed]="user.notificationsEnabled" [disabled]="notificationBusy()"
+            (click)="updateNotifications(!user.notificationsEnabled)">
+            {{ (user.notificationsEnabled ? 'profile.notificationsOn' : 'profile.notificationsOff') | translate }}
+          </button>
+          @if (notificationError()) { <p class="error" role="alert">{{ 'profile.notificationError' | translate }}</p> }
+        </section>
+      }
+
+      <button type="button" class="outline" [attr.aria-expanded]="passwordOpen()" aria-controls="password-settings"
+        (click)="passwordOpen.set(!passwordOpen())">{{ 'profile.changePassword' | translate }}</button>
+      @if (passwordOpen()) {
+        <section id="password-settings" class="settings">
+          <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+            <label for="current-password">{{ 'profile.currentPassword' | translate }}</label>
+            <input id="current-password" type="password" formControlName="currentPassword" autocomplete="current-password" />
+            <label for="new-password">{{ 'profile.newPassword' | translate }}</label>
+            <input id="new-password" type="password" formControlName="newPassword" autocomplete="new-password" />
+            <label for="confirm-password">{{ 'profile.confirmPassword' | translate }}</label>
+            <input id="confirm-password" type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            <p class="hint">{{ 'profile.passwordHint' | translate }}</p>
+            @if (passwordError()) { <p class="error" role="alert">{{ passwordError()! | translate }}</p> }
+            @if (passwordSuccess()) { <p class="success" role="status">{{ 'profile.passwordSuccess' | translate }}</p> }
+            <button type="submit" class="primary" [disabled]="passwordBusy()">{{ 'profile.savePassword' | translate }}</button>
+          </form>
+        </section>
+      }
+      <button type="button" class="primary" (click)="logout()">{{ 'dashboard.signOut' | translate }}</button>
+    </div>
+  }
+</main>

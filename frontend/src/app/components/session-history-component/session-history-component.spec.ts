@@ -48,7 +48,7 @@ describe('Session history', () => {
     http.expectNone('/api/session-history');
   });
 
-  it('opens history from the menu and displays account as unavailable', async () => {
+  it('opens history from the menu and links to the profile', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/home', MainScreenComponent);
@@ -58,7 +58,7 @@ describe('Session history', () => {
     harness.detectChanges();
     harness.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
     harness.detectChanges();
-    expect(harness.routeNativeElement!.querySelector('[aria-disabled="true"]')).toBeTruthy();
+    expect(harness.routeNativeElement!.querySelector('a[href="/profile"]')).toBeTruthy();
     harness
       .routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/sessions/history"]')!
       .click();

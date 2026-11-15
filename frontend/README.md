@@ -46,7 +46,9 @@ The planning screen saves a future session without starting it. Dates and times 
 
 The calendar shows sessions by local start date. Planned sessions use their planned start; other sessions use their actual start, or the planned time when the actual start is unavailable. Select a day to see its sessions, open past session details, start planned sessions, or plan a new session with the selected date prefilled.
 
-The menu links to the authenticated session history, showing completed and cancelled sessions grouped by local start date. Each entry opens its detail page. Cancelled durations are planned focus time, not necessarily time spent. The end time is shown when recorded; older sessions and sessions cancelled after lost activity may not have one. The account screen is not implemented yet.
+The menu links to the authenticated session history, showing completed and cancelled sessions grouped by local start date. Each entry opens its detail page. Cancelled durations are planned focus time, not necessarily time spent. The end time is shown when recorded; older sessions and sessions cancelled after lost activity may not have one.
+
+The menu also links to the profile, where users can see their balance and active theme, save their notification preference, and change their password by providing the current one. Saving the notification preference does not enable reminders; reminders are not implemented yet.
 
 ## Code scaffolding
 

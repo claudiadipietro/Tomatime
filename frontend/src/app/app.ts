@@ -37,7 +37,7 @@ export class App {
     { initialValue: this.router.url },
   );
   readonly isDashboard = computed(() =>
-    ['home', 'sessions', 'rewards'].includes(
+    ['home', 'sessions', 'rewards', 'profile'].includes(
       this.router.parseUrl(this.currentUrl()).root.children['primary']?.segments[0]?.path ?? '',
     ),
   );
