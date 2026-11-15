@@ -43,6 +43,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'sessions/calendar',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/session-calendar-component/session-calendar-component').then(
+        ({ SessionCalendarComponent }) => SessionCalendarComponent,
+      ),
+  },
+  {
     path: 'sessions/history',
     canActivate: [authGuard],
     loadComponent: () =>
