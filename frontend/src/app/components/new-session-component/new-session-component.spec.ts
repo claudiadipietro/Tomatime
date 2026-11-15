@@ -64,7 +64,7 @@ describe('New session', () => {
     expect(component.blocks().length).toBe(12);
   });
 
-  it('creates exactly one spontaneous session and displays the timer limitation', async () => {
+  it('creates exactly one spontaneous session and opens the timer', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/sessions/new', NewSessionComponent);
@@ -78,7 +78,13 @@ describe('New session', () => {
     request.flush({ id: 1, duration: 75, actualStartTime: new Date().toISOString() });
     await harness.fixture.whenStable();
     expect(component.started()).toBe(true);
-    expect(harness.routeNativeElement?.querySelector('[role="status"]')).toBeTruthy();
+    expect(TestBed.inject(Router).url).toBe('/sessions/1/timer');
+    http.expectOne('/api/session-runs/1/heartbeat').flush({
+      id: 1,
+      duration: 75,
+      actualStartTime: new Date().toISOString(),
+      serverTime: new Date().toISOString(),
+    });
     component.start();
     http.expectNone('/api/session-starts');
   });
@@ -97,5 +103,12 @@ describe('New session', () => {
       .expectOne('/api/session-starts')
       .flush({ id: 2, duration: 50, actualStartTime: new Date().toISOString() });
     expect(component.started()).toBe(true);
+    await harness.fixture.whenStable();
+    http.expectOne('/api/session-runs/2/heartbeat').flush({
+      id: 2,
+      duration: 50,
+      actualStartTime: new Date().toISOString(),
+      serverTime: new Date().toISOString(),
+    });
   });
 });

@@ -25,6 +25,8 @@ public class Session
     /// </summary>
     public DateTime? ActualStartTime { get; set; }
 
+    public DateTime? LastActivityAt { get; set; }
+
     /// <summary>
     /// Gets or sets the planned duration of the session in minutes.
     /// </summary>

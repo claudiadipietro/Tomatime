@@ -6,13 +6,9 @@
     <span aria-hidden="true">👋</span>
   </h1>
 
-  @if (startMessage()) {
-    <p class="dashboard-status" role="status">{{ 'session.startedNotice' | translate }}</p>
-  }
   @if (startError()) {
     <p class="dashboard-status" role="alert">{{ 'session.startError' | translate }}</p>
   }
-  <p class="session-disclaimer">{{ 'session.timerUnavailable' | translate }}</p>
   @if (loading()) {
     <p class="dashboard-status" role="status">{{ 'dashboard.loading' | translate }}</p>
   } @else if (error()) {

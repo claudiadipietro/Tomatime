@@ -1,0 +1,94 @@
+<app-main-header />
+<main class="timer-page">
+  <h1>{{ 'timer.title' | translate }}</h1>
+  @if (state() === 'loading') {
+    <p role="status">{{ 'timer.loading' | translate }}</p>
+    <a class="cancel" routerLink="/home">{{ 'timer.leave' | translate }}</a>
+  } @else if (state() === 'active') {
+    <p class="block-label">
+      {{ 'timer.block' | translate: { current: block(), total: blocks() } }}
+    </p>
+    <section class="clock" [attr.aria-label]="'timer.clockLabel' | translate">
+      <strong>{{ remaining() }}</strong>
+      <span>{{ (isBreak() ? 'timer.break' : 'timer.focus') | translate }}</span>
+    </section>
+    <div
+      class="progress"
+      role="progressbar"
+      [attr.aria-label]="'timer.progress' | translate"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuenow]="progress()"
+    >
+      <span [style.width.%]="progress()"></span>
+    </div>
+    <div class="segments" [attr.aria-label]="'session.timeline' | translate">
+      @for (segment of segments(); track $index) {
+        <div class="segment" [class.segment--break]="segment.isBreak">
+          <div class="segment-track"><span [style.width.%]="segment.progress"></span></div>
+          <span>{{
+            (segment.isBreak ? 'session.breakBlock' : 'session.focusBlock') | translate
+          }}</span>
+        </div>
+      }
+    </div>
+    <p>{{ 'timer.reward' | translate: { count: blocks() * 2 } }}</p>
+    <p class="leave-notice">{{ 'timer.leaveNotice' | translate }}</p>
+    @if (error()) {
+      <p class="error" role="alert">{{ error()! | translate }}</p>
+    }
+    @if (elapsed() >= totalSeconds() && error()) {
+      <button class="primary" type="button" (click)="complete()">
+        {{ 'timer.retry' | translate }}
+      </button>
+    }
+    <a class="cancel" routerLink="/home">{{ 'timer.leave' | translate }}</a>
+  } @else if (state() === 'completed') {
+    <div class="confetti" aria-hidden="true">
+      @for (piece of confetti; track piece) {
+        <span
+          class="confetti-piece"
+          [style.left.%]="(piece * 47 + 7) % 100"
+          [style.animation-delay.ms]="(piece * 137) % 900"
+          [style.animation-duration.ms]="2600 + (piece % 5) * 250"
+        ></span>
+      }
+    </div>
+    <p class="success" role="status">{{ 'timer.completed' | translate: { count: earned() } }}</p>
+    <a class="primary" routerLink="/home">{{ 'timer.home' | translate }}</a>
+  } @else {
+    <p class="error" role="alert">{{ error() ?? 'timer.ended' | translate }}</p>
+    <a class="primary" routerLink="/home">{{ 'timer.home' | translate }}</a>
+  }
+  @if (state() === 'loading' && error()) {
+    <p class="error" role="alert">{{ error()! | translate }}</p>
+  }
+</main>
+<dialog
+  #leaveDialog
+  aria-labelledby="leave-title"
+  aria-describedby="leave-description"
+  (cancel)="$event.preventDefault(); decideLeave(false)"
+>
+  <h2 id="leave-title">{{ 'timer.confirmTitle' | translate }}</h2>
+  <p id="leave-description">{{ 'timer.confirmDescription' | translate }}</p>
+  <div class="dialog-actions">
+    <button
+      class="dialog-continue"
+      type="button"
+      autofocus
+      [disabled]="cancellationPending()"
+      (click)="decideLeave(false)"
+    >
+      {{ 'timer.continue' | translate }}
+    </button>
+    <button
+      class="cancel"
+      type="button"
+      [disabled]="cancellationPending()"
+      (click)="decideLeave(true)"
+    >
+      {{ (cancellationPending() ? 'timer.cancelling' : 'timer.leave') | translate }}
+    </button>
+  </div>
+</dialog>

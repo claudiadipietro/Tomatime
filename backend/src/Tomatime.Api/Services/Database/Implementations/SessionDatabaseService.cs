@@ -60,7 +60,8 @@ public class SessionDatabaseService : ISessionDatabaseService
                               session.Status == SessionStatus.Planned)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(session => session.Status, SessionStatus.InProgress)
-                .SetProperty(session => session.ActualStartTime, startedAt));
+                .SetProperty(session => session.ActualStartTime, startedAt)
+                .SetProperty(session => session.LastActivityAt, startedAt));
         return updated != 0;
     }
 

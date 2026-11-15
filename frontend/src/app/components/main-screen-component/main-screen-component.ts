@@ -28,7 +28,6 @@ export class MainScreenComponent {
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly starting = signal(false);
-  readonly startMessage = signal(false);
   readonly startError = signal(false);
 
   readonly nextSessionDate = computed(() => {
@@ -77,15 +76,13 @@ export class MainScreenComponent {
     if (sessionId === undefined || this.starting()) return;
     this.starting.set(true);
     this.startError.set(false);
-    this.startMessage.set(false);
     this.sessionService
       .startPlanned(sessionId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
           this.starting.set(false);
-          this.startMessage.set(true);
-          this.loadDashboard();
+          void this.router.navigate(['/sessions', sessionId, 'timer']);
         },
         error: (error: HttpErrorResponse) => {
           this.starting.set(false);

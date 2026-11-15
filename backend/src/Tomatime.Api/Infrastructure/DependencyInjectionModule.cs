@@ -46,6 +46,10 @@ public sealed class DependencyInjectionModule(IConfiguration configuration) : Mo
         builder.RegisterType<SessionPlanningService>()
             .As<ISessionPlanningService>()
             .InstancePerLifetimeScope();
+
+        builder.RegisterType<SessionRunService>()
+            .As<ISessionRunService>()
+            .InstancePerLifetimeScope();
         
         builder.RegisterType<ThemeDatabaseService>()
             .As<IThemeDatabaseService>()

@@ -36,9 +36,9 @@ Keep frontend components, models, and services in their respective folders under
 
 Password reset links open `/reset-password?token=...`. The form sends the token and new password to `/api/auth/reset-password`. The backend currently logs reset links instead of sending email; configure an email sender before relying on delivery.
 
-After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the planned durations (in minutes) of completed sessions, not actual elapsed time. The calendar, session and reward screens are not available yet.
+After login or registration, `/home` shows the authenticated dashboard. Its data comes from `/api/dashboard`, which derives the user from the validated JWT. Focus time sums the focus durations (in minutes) of completed sessions. The calendar and reward screens are not available yet.
 
-The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. Both actions record the session as in progress, but the countdown and completion flow are not implemented yet; they do not automatically complete a session or award pomos.
+The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. The timer includes a five-minute break between focus blocks. Completing the entire session awards two pomos per focus block, once; leaving or reloading cancels it without a reward. The timer requires an active connection: if activity is not received for two minutes, the server cancels the session.
 
 The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC. Session reminders are not implemented.
 

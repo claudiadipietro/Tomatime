@@ -21,6 +21,7 @@ public sealed class SessionStartService(
             UserId = userId,
             PlannedStartTime = now,
             ActualStartTime = now,
+            LastActivityAt = now,
             Duration = duration,
             Status = SessionStatus.InProgress,
         };
