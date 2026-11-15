@@ -138,6 +138,28 @@
     "success": "Your session has been planned.",
     "error": "The session could not be planned. Please try again."
   },
+  "rewards": {
+    "title": "Rewards",
+    "back": "Back to home",
+    "loading": "Loading rewards…",
+    "balance": "{{count}} pomos available",
+    "breakTitle": "Extra break",
+    "extraBreak": "5-minute break",
+    "breakDescription": "Automatically added to the first break in a session that has breaks.",
+    "pending": "Pending extra breaks: {{count}}",
+    "themes": "Themes",
+    "theme": { "default": "Classic", "pink": "Pink", "blue": "Blue" },
+    "buy": "Redeem for {{count}} pomos",
+    "retryPurchase": "Confirm pending purchase",
+    "retryLoad": "Retry",
+    "active": "Active",
+    "activate": "Activate",
+    "extendBreak": "Add 5 minutes for 5 pomos",
+    "insufficient": "You do not have enough pomos.",
+    "loadError": "Could not load rewards.",
+    "themeLoadError": "Your theme could not be refreshed. Check your connection.",
+    "actionError": "Could not complete the action. Please try again."
+  },
   "auth": {
     "backHome": "Back to Tomatime",
     "fields": {

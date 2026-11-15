@@ -39,33 +39,6 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateUser([FromBody] User user)
-    {
-        var createdUser = await _userDatabaseService.CreateUserAsync(user);
-        if (createdUser == null)
-        {
-            return BadRequest("Failed to create user.");
-        }
-        return CreatedAtAction(nameof(GetUserById), new { userId = createdUser.Id }, createdUser);
-    }
-
-    [HttpPut("{userId}")]
-    public async Task<IActionResult> UpdateUser(int userId, [FromBody] User user)
-    {
-        if (userId != user.Id)
-        {
-            return BadRequest("User ID mismatch.");
-        }
-
-        var updatedUser = await _userDatabaseService.UpdateUserAsync(user);
-        if (updatedUser == null)
-        {
-            return NotFound();
-        }
-        return Ok(updatedUser);
-    }
-
     [HttpDelete("{userId}")]
     public async Task<IActionResult> DeleteUser(int userId)
     {

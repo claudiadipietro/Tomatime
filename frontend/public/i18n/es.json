@@ -138,6 +138,28 @@
     "success": "Tu sesión se ha planificado.",
     "error": "No se ha podido planificar la sesión. Inténtalo de nuevo."
   },
+  "rewards": {
+    "title": "Recompensas",
+    "back": "Volver al inicio",
+    "loading": "Cargando recompensas…",
+    "balance": "{{count}} pomos disponibles",
+    "breakTitle": "Descanso extra",
+    "extraBreak": "5 minutos de descanso",
+    "breakDescription": "Se añadirá automáticamente al primer descanso de una sesión que tenga descansos.",
+    "pending": "Descansos pendientes: {{count}}",
+    "themes": "Temas",
+    "theme": { "default": "Clásico", "pink": "Rosa", "blue": "Azul" },
+    "buy": "Canjear por {{count}} pomos",
+    "retryPurchase": "Confirmar compra pendiente",
+    "retryLoad": "Reintentar",
+    "active": "Activado",
+    "activate": "Activar",
+    "extendBreak": "Añadir 5 minutos por 5 pomos",
+    "insufficient": "No tienes suficientes pomos.",
+    "loadError": "No se pudieron cargar las recompensas.",
+    "themeLoadError": "No se pudo actualizar tu tema. Comprueba tu conexión.",
+    "actionError": "No se pudo completar la operación. Inténtalo de nuevo."
+  },
   "auth": {
     "backHome": "Volver a Tomatime",
     "fields": {

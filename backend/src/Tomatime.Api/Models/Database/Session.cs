@@ -28,6 +28,8 @@ public class Session
     public DateTime? LastActivityAt { get; set; }
 
     public DateTime? EndedAt { get; set; }
+    public int[] BreakExtensions { get; set; } = [];
+    public bool StoredBreakApplied { get; set; }
 
     /// <summary>
     /// Gets or sets the planned duration of the session in minutes.

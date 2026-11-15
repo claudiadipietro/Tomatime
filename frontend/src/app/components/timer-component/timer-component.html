@@ -33,6 +33,11 @@
       }
     </div>
     <p>{{ 'timer.reward' | translate: { count: blocks() * 2 } }}</p>
+    @if (isBreak() || pendingExtension) {
+      <button class="primary" type="button" [disabled]="extending() || ((session()?.pomoBalance ?? 0) < 5 && !pendingExtension)" (click)="extendBreak()">
+        {{ (pendingExtension ? 'rewards.retryPurchase' : 'rewards.extendBreak') | translate }}
+      </button>
+    }
     <p class="leave-notice">{{ 'timer.leaveNotice' | translate }}</p>
     @if (error()) {
       <p class="error" role="alert">{{ error()! | translate }}</p>

@@ -43,6 +43,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'rewards',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./components/rewards-component/rewards-component').then(
+        ({ RewardsComponent }) => RewardsComponent,
+      ),
+  },
+  {
     path: 'sessions/calendar',
     canActivate: [authGuard],
     loadComponent: () =>
