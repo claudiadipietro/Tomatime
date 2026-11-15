@@ -101,6 +101,9 @@ namespace Tomatime.Api.Migrations
                     b.Property<int>("Duration")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("LastActivityAt")
                         .HasColumnType("timestamp with time zone");
 
