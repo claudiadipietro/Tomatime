@@ -10,4 +10,8 @@ export class SessionHistoryService {
   getHistory(): Observable<SessionHistoryItem[]> {
     return this.http.get<SessionHistoryItem[]>('/api/session-history');
   }
+
+  getItem(id: number): Observable<SessionHistoryItem> {
+    return this.http.get<SessionHistoryItem>(`/api/session-history/${id}`);
+  }
 }

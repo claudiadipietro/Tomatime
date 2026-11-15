@@ -7,6 +7,20 @@ namespace Tomatime.Api.Services;
 
 public sealed class SessionHistoryService(AppDbContext db) : ISessionHistoryService
 {
+    public async Task<SessionHistoryItem?> GetHistoryItemAsync(int userId, int sessionId)
+    {
+        var session = await db.Sessions.AsNoTracking()
+            .Where(s => s.Id == sessionId && s.UserId == userId &&
+                (s.Status == SessionStatus.Completed || s.Status == SessionStatus.Cancelled))
+            .Select(s => new
+            {
+                s.Id, s.Duration, s.Status, s.ActualStartTime, s.EndedAt, s.PomosEarned,
+            }).SingleOrDefaultAsync();
+        return session is null ? null : new SessionHistoryItem(
+            session.Id, session.Duration, session.Status.ToString(),
+            session.ActualStartTime, session.EndedAt, session.PomosEarned);
+    }
+
     public async Task<List<SessionHistoryItem>> GetHistoryAsync(int userId)
     {
         var sessions = await db.Sessions.AsNoTracking()

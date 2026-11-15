@@ -61,12 +61,18 @@ ul {
 .session-card {
   align-items: center;
   background: var(--color-surface);
+  color: inherit;
   border-radius: 0.75rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1rem;
   justify-content: space-between;
   padding: 1rem;
+  text-decoration: none;
+  transition: box-shadow 150ms ease;
+}
+.session-card:hover {
+  box-shadow: 0 0.25rem 1rem rgb(0 0 0 / 12%);
 }
 .session-details,
 .session-result {
@@ -106,6 +112,7 @@ ul {
   padding: 0.75rem 1.25rem;
 }
 .back-link:focus-visible,
+.session-card:focus-visible,
 .retry:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;

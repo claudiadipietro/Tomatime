@@ -20,16 +20,30 @@ public class SessionHistoryControllerTests
         };
         Assert.NotEmpty(typeof(SessionHistoryController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
         Assert.IsType<UnauthorizedResult>(await controller.Get());
+        Assert.IsType<UnauthorizedResult>(await controller.GetItem(42));
         Assert.Null(service.RequestedUser);
         controller.HttpContext.User = new ClaimsPrincipal(
             new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test"));
         Assert.IsType<List<SessionHistoryItem>>(Assert.IsType<OkObjectResult>(await controller.Get()).Value);
         Assert.Equal(7, service.RequestedUser);
+        Assert.IsType<NotFoundResult>(await controller.GetItem(42));
+        Assert.Equal(7, service.RequestedUser);
+        Assert.Equal(42, service.RequestedSession);
+        service.Item = new SessionHistoryItem(42, 50, "Completed", DateTime.UtcNow, null, 4);
+        Assert.Equal(service.Item, Assert.IsType<OkObjectResult>(await controller.GetItem(42)).Value);
     }
 
     private sealed class FakeHistory : ISessionHistoryService
     {
         public int? RequestedUser { get; private set; }
+        public int? RequestedSession { get; private set; }
+        public SessionHistoryItem? Item { get; set; }
+        public Task<SessionHistoryItem?> GetHistoryItemAsync(int userId, int sessionId)
+        {
+            RequestedUser = userId;
+            RequestedSession = sessionId;
+            return Task.FromResult(Item);
+        }
         public Task<List<SessionHistoryItem>> GetHistoryAsync(int userId)
         {
             RequestedUser = userId;
