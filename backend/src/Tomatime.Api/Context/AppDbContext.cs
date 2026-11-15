@@ -12,6 +12,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 	public DbSet<UserReward> UserRewards => Set<UserReward>();
 	public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 	public DbSet<RewardOperation> RewardOperations => Set<RewardOperation>();
+	public DbSet<PushDevice> PushDevices => Set<PushDevice>();
+	public DbSet<ReminderDelivery> ReminderDeliveries => Set<ReminderDelivery>();
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
@@ -94,6 +96,22 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.Property(operation => operation.Kind).HasMaxLength(32).IsRequired();
 			entity.HasOne<User>().WithMany().HasForeignKey(operation => operation.UserId).OnDelete(DeleteBehavior.Cascade);
 			entity.HasOne<Reward>().WithMany().HasForeignKey(operation => operation.RewardId).OnDelete(DeleteBehavior.Restrict);
+		});
+		modelBuilder.Entity<PushDevice>(entity =>
+		{
+			entity.HasKey(device => device.Id);
+			entity.Property(device => device.Endpoint).HasMaxLength(2048).IsRequired();
+			entity.Property(device => device.P256dh).HasMaxLength(128).IsRequired();
+			entity.Property(device => device.Auth).HasMaxLength(128).IsRequired();
+			entity.Property(device => device.Language).HasMaxLength(2).IsRequired();
+			entity.HasIndex(device => device.Endpoint).IsUnique();
+			entity.HasOne<User>().WithMany().HasForeignKey(device => device.UserId).OnDelete(DeleteBehavior.Cascade);
+		});
+		modelBuilder.Entity<ReminderDelivery>(entity =>
+		{
+			entity.HasKey(delivery => new { delivery.SessionId, delivery.PushDeviceId });
+			entity.HasOne<Session>().WithMany().HasForeignKey(delivery => delivery.SessionId).OnDelete(DeleteBehavior.Cascade);
+			entity.HasOne<PushDevice>().WithMany().HasForeignKey(delivery => delivery.PushDeviceId).OnDelete(DeleteBehavior.Cascade);
 		});
 	}
 }
