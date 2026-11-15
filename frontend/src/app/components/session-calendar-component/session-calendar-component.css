@@ -1,0 +1,201 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+.calendar-page {
+  color: var(--color-text-muted);
+  margin: 0 auto;
+  max-width: 76rem;
+  padding: 1.5rem clamp(1.25rem, 3vw, 2.5rem) 4rem;
+  width: 100%;
+}
+.back-link {
+  align-items: center;
+  color: var(--color-text-subtle);
+  display: inline-flex;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+.back-link span {
+  font-size: 2rem;
+  line-height: 1;
+}
+h1 {
+  color: var(--color-primary-text);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  margin: 0.75rem 0 2rem;
+  text-align: center;
+}
+.calendar-layout {
+  align-items: start;
+  display: grid;
+  gap: clamp(1.25rem, 4vw, 3rem);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+}
+.calendar-panel,
+.selected-panel {
+  background: var(--color-surface-soft);
+  border-radius: 1.5rem;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+}
+.selected-panel {
+  background: var(--color-surface-control);
+  border-radius: 2rem;
+}
+.month-nav {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+.month-nav h2 {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  margin: 0;
+  text-align: center;
+  text-transform: capitalize;
+}
+.month-nav button {
+  background: var(--color-background);
+  border: 0;
+  border-radius: 0.65rem;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 1.8rem;
+  height: 2.75rem;
+  width: 2.75rem;
+}
+.weekdays,
+.days {
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.weekdays {
+  margin: 1rem 0 0.4rem;
+  text-align: center;
+}
+.day {
+  background: var(--color-background);
+  border: 2px solid transparent;
+  border-radius: 0.6rem;
+  color: var(--color-text);
+  cursor: pointer;
+  min-height: 3.25rem;
+  position: relative;
+}
+.day.outside {
+  color: var(--color-text-subtle);
+  opacity: 0.6;
+}
+.day.selected {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  opacity: 1;
+}
+.dot {
+  background: var(--color-primary);
+  border-radius: 50%;
+  display: inline-block;
+  height: 0.5rem;
+  width: 0.5rem;
+}
+.day .dot {
+  bottom: 0.3rem;
+  left: calc(50% - 0.25rem);
+  position: absolute;
+}
+.day.selected .dot {
+  background: var(--color-on-primary);
+}
+.legend {
+  font-size: 0.85rem;
+  margin: 1.25rem 0 0;
+}
+.selected-panel h2 {
+  color: var(--color-primary-text);
+  font-size: clamp(1.3rem, 3vw, 1.75rem);
+  margin: 0 0 1.5rem;
+  text-align: center;
+}
+.session-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.session-card {
+  background: var(--color-surface);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+.session-card p {
+  margin: 0.3rem 0;
+}
+.session-time {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+.primary,
+.secondary {
+  border: 2px solid var(--color-primary);
+  border-radius: 0.65rem;
+  cursor: pointer;
+  display: inline-block;
+  font: inherit;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  text-align: center;
+  text-decoration: none;
+}
+.primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  width: 100%;
+}
+.secondary {
+  background: transparent;
+  color: var(--color-primary-text);
+}
+.secondary:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.planning-unavailable {
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+.detail-link {
+  color: var(--color-primary-text);
+  display: inline-block;
+  margin-top: 0.5rem;
+}
+.error {
+  color: var(--color-danger);
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 380px) {
+  .days,
+  .weekdays {
+    gap: 0.2rem;
+  }
+  .day {
+    min-height: 2.75rem;
+  }
+}

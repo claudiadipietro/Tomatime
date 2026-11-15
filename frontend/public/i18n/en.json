@@ -52,6 +52,25 @@
     "cancelled": "Cancelled",
     "pomos": "{{count}} pomos"
   },
+  "calendar": {
+    "title": "Session calendar",
+    "back": "Back to calendar",
+    "previous": "Previous month",
+    "next": "Next month",
+    "hasSessions": "Day with sessions",
+    "loading": "Loading sessions…",
+    "error": "The sessions could not be loaded.",
+    "empty": "You have no sessions on this day.",
+    "pastDate": "You cannot plan sessions on dates before today.",
+    "plannedTime": "Planned time; actual start unavailable",
+    "viewDetails": "View details",
+    "status": {
+      "Planned": "Planned",
+      "InProgress": "In progress",
+      "Completed": "Completed",
+      "Cancelled": "Cancelled"
+    }
+  },
   "session": {
     "title": "New session",
     "prompt": "How long would you like to focus?",

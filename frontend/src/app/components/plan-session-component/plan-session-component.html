@@ -1,13 +1,23 @@
 <app-main-header />
 <div class="session-page">
-  <a class="back-link" routerLink="/home" [attr.aria-label]="'session.back' | translate">
-    <span aria-hidden="true">←</span> {{ 'session.back' | translate }}
+  <a
+    class="back-link"
+    [routerLink]="fromCalendar ? '/sessions/calendar' : '/home'"
+    [queryParams]="fromCalendar ? { date: calendarDate } : {}"
+  >
+    <span aria-hidden="true">←</span>
+    {{ (fromCalendar ? 'calendar.back' : 'session.back') | translate }}
   </a>
   <section class="session-content" aria-labelledby="plan-title">
     <h1 id="plan-title">{{ 'planning.title' | translate }}</h1>
     @if (planned()) {
       <p class="notice notice--success" role="status">{{ 'planning.success' | translate }}</p>
-      <a class="primary-button" routerLink="/home">{{ 'session.back' | translate }}</a>
+      <a
+        class="primary-button"
+        [routerLink]="fromCalendar ? '/sessions/calendar' : '/home'"
+        [queryParams]="fromCalendar ? { date: form.controls.date.value } : {}"
+        >{{ (fromCalendar ? 'calendar.back' : 'session.back') | translate }}</a
+      >
     } @else {
       <h2>{{ 'planning.prompt' | translate }}</h2>
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -22,6 +32,8 @@
               <input
                 id="planned-date"
                 type="date"
+                [min]="today()"
+                (focus)="refreshToday()"
                 formControlName="date"
                 [attr.aria-invalid]="form.controls.date.invalid && form.controls.date.touched"
                 [attr.aria-describedby]="

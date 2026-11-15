@@ -52,6 +52,25 @@
     "cancelled": "Cancelada",
     "pomos": "{{count}} pomos"
   },
+  "calendar": {
+    "title": "Calendario de sesiones",
+    "back": "Volver al calendario",
+    "previous": "Mes anterior",
+    "next": "Mes siguiente",
+    "hasSessions": "Día con sesiones",
+    "loading": "Cargando sesiones…",
+    "error": "No se han podido cargar las sesiones.",
+    "empty": "No tienes sesiones este día.",
+    "pastDate": "No puedes planificar sesiones en fechas anteriores a hoy.",
+    "plannedTime": "Hora prevista; inicio real no disponible",
+    "viewDetails": "Ver detalle",
+    "status": {
+      "Planned": "Planificada",
+      "InProgress": "En curso",
+      "Completed": "Completada",
+      "Cancelled": "Cancelada"
+    }
+  },
   "session": {
     "title": "Nueva sesión",
     "prompt": "¿Cuánto tiempo quieres concentrarte?",

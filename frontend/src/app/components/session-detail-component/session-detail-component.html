@@ -63,5 +63,10 @@
       </p>
     </div>
   }
-  <a class="primary" routerLink="/sessions/history">{{ 'sessionDetail.back' | translate }}</a>
+  <a
+    class="primary"
+    [routerLink]="fromCalendar ? '/sessions/calendar' : '/sessions/history'"
+    [queryParams]="fromCalendar ? { date: calendarDate } : {}"
+    >{{ (fromCalendar ? 'calendar.back' : 'sessionDetail.back') | translate }}</a
+  >
 </main>
