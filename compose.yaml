@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: tomatime
+      POSTGRES_USER: tomatime
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tomatime -d tomatime"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/Tomatime.Api/Dockerfile
+    environment:
+      # This compose configuration is for local use only.
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: "8080"
+      ConnectionStrings__tomatime: "Host=db;Port=5432;Database=tomatime;Username=tomatime;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      Jwt__Key: ${JWT_KEY:?Set JWT_KEY in .env}
+      Frontend__ResetPasswordUrl: http://localhost:${APP_PORT:-8080}/reset-password
+      Gmail__Address: ${GMAIL_ADDRESS:-}
+      Gmail__AppPassword: ${GMAIL_APP_PASSWORD:-}
+      WebPush__PublicKey: ${WEBPUSH_PUBLIC_KEY:-}
+      WebPush__PrivateKey: ${WEBPUSH_PRIVATE_KEY:-}
+      WebPush__Subject: ${WEBPUSH_SUBJECT:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

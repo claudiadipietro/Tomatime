@@ -8,6 +8,7 @@ import { routes } from '../../app.routes';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { authInterceptor } from '../../services/auth.interceptor';
 import { TimerComponent } from './timer-component';
+import { vi } from 'vitest';
 
 describe('Session timer', () => {
   let http: HttpTestingController;
@@ -141,6 +142,21 @@ describe('Session timer', () => {
     const completedEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
     component.onBeforeUnload(completedEvent);
     expect(completedEvent.defaultPrevented).toBe(false);
+  });
+
+  it('sends an authenticated keepalive cancellation on pagehide', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response());
+    try {
+      const { component } = await open(10);
+      component.onPageHide();
+      expect(fetchMock).toHaveBeenCalledWith('/api/session-runs/12/cancel', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer token' },
+        keepalive: true,
+      });
+    } finally {
+      fetchMock.mockRestore();
+    }
   });
 
   it('cancels a session on reload rather than resuming it', async () => {
