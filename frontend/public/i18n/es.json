@@ -17,6 +17,8 @@
   "dashboard": {
     "home": "Inicio de Tomatime",
     "menu": "Menú",
+    "account": "Mi cuenta",
+    "comingSoon": "Próximamente",
     "signOut": "Cerrar sesión",
     "greeting": "¡Hola, {{name}}!",
     "loading": "Cargando tu inicio…",
@@ -36,6 +38,19 @@
     "availablePomos": "pomos disponibles",
     "focusTime": "tiempo de concentración",
     "completedSessions": "sesiones completadas"
+  },
+  "history": {
+    "title": "Historial de sesiones",
+    "loading": "Cargando tu historial…",
+    "error": "No se ha podido cargar el historial. Inténtalo de nuevo.",
+    "empty": "Todavía no tienes sesiones completadas o canceladas.",
+    "today": "Hoy",
+    "unknownDate": "Fecha de inicio no disponible",
+    "duration": "{{count}} min de concentración",
+    "plannedDuration": "{{count}} min de concentración previstos",
+    "completed": "Completada",
+    "cancelled": "Cancelada",
+    "pomos": "{{count}} pomos"
   },
   "session": {
     "title": "Nueva sesión",
