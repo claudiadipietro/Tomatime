@@ -42,6 +42,8 @@ The new-session screen starts a spontaneous session with 25–300 minutes of foc
 
 The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC. Session reminders are not implemented.
 
+The menu links to the authenticated session history, showing completed and cancelled sessions grouped by local start date. Cancelled durations are planned focus time, not necessarily time spent. The end time is shown when recorded; older sessions and sessions cancelled after lost activity may not have one. The account screen is not implemented yet.
+
 ## Code scaffolding
 
 Angular CLI includes powerful code scaffolding tools. To generate a new component, run:

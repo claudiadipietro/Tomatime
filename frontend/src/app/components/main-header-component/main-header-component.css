@@ -43,18 +43,40 @@
   right: 1.5rem;
   top: 4.5rem;
   z-index: 3;
+  display: grid;
+  min-width: 13rem;
 }
 
-.main-menu button {
+.main-menu button,
+.main-menu a,
+.menu-unavailable {
   background: none;
   border: 0;
   color: var(--color-primary-text);
-  cursor: pointer;
   padding: 1rem 1.5rem;
+  text-align: left;
+  text-decoration: none;
+}
+
+.main-menu a,
+.main-menu button {
+  cursor: pointer;
+}
+.menu-unavailable {
+  color: var(--color-text-subtle);
+}
+.menu-unavailable small {
+  display: block;
+  font-size: 0.8rem;
+}
+.main-menu a:hover,
+.main-menu button:hover {
+  background: var(--color-surface-soft);
 }
 
 .menu-toggle:focus-visible,
-.main-menu button:focus-visible {
+.main-menu button:focus-visible,
+.main-menu a:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
 }

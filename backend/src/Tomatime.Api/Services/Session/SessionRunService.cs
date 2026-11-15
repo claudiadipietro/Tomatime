@@ -30,7 +30,8 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
     public async Task<bool> CancelAsync(int userId, int sessionId) =>
         await db.Sessions.Where(s => s.Id == sessionId && s.UserId == userId &&
                                      s.Status == SessionStatus.InProgress)
-            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Cancelled)) != 0;
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Cancelled)
+                .SetProperty(x => x.EndedAt, DateTime.UtcNow)) != 0;
 
     public async Task<CompletionResult> CompleteAsync(int userId, int sessionId)
     {
@@ -63,7 +64,8 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
             s.Status == SessionStatus.InProgress && s.LastActivityAt >= now - ActivityTimeout &&
             s.ActualStartTime == session.ActualStartTime && s.Duration == session.Duration)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Completed)
-                .SetProperty(x => x.PomosEarned, pomos));
+                .SetProperty(x => x.PomosEarned, pomos)
+                .SetProperty(x => x.EndedAt, now));
         if (updated == 0)
         {
             var completed = await db.Sessions.AsNoTracking().SingleOrDefaultAsync(s =>

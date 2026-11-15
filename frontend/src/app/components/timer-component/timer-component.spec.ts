@@ -114,6 +114,24 @@ describe('Session timer', () => {
     http.expectNone('/api/session-runs/12/cancel');
   });
 
+  it('asks before opening history from an active session', async () => {
+    const { harness } = await open(10);
+    harness.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
+    harness.detectChanges();
+    harness
+      .routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/sessions/history"]')!
+      .click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(harness.routeNativeElement!.querySelector('dialog')!.open).toBe(true);
+    harness.routeNativeElement!.querySelector<HTMLButtonElement>('dialog .cancel')!.click();
+    http
+      .expectOne('/api/session-runs/12/cancel')
+      .flush(null, { status: 204, statusText: 'No Content' });
+    await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/sessions/history');
+    http.expectOne('/api/session-history').flush([]);
+  });
+
   it('requests a browser confirmation for reload while active but not after completion', async () => {
     const { component } = await open(10);
     const activeEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
