@@ -174,38 +174,6 @@ namespace Tomatime.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Tomatime.Api.Models.RewardOperation", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Kind")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
-                    b.Property<int>("RewardId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SessionId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RewardId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RewardOperations");
-                });
-
             modelBuilder.Entity("Tomatime.Api.Models.Session", b =>
                 {
                     b.Property<int>("Id")
@@ -335,7 +303,20 @@ namespace Tomatime.Api.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime?>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<Guid?>("OperationId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("RewardId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SessionId")
                         .HasColumnType("integer");
 
                     b.Property<int>("UserId")
@@ -343,10 +324,14 @@ namespace Tomatime.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OperationId")
+                        .IsUnique();
+
                     b.HasIndex("RewardId");
 
                     b.HasIndex("UserId", "RewardId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"RewardId\" <> -3");
 
                     b.ToTable("UserRewards");
                 });
@@ -392,21 +377,6 @@ namespace Tomatime.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("Tomatime.Api.Models.RewardOperation", b =>
-                {
-                    b.HasOne("Tomatime.Api.Models.Reward", null)
-                        .WithMany()
-                        .HasForeignKey("RewardId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Tomatime.Api.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Tomatime.Api.Models.Session", b =>
                 {
                     b.HasOne("Tomatime.Api.Models.User", null)
@@ -421,7 +391,7 @@ namespace Tomatime.Api.Migrations
                     b.HasOne("Tomatime.Api.Models.Reward", null)
                         .WithMany()
                         .HasForeignKey("RewardId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Tomatime.Api.Models.User", null)

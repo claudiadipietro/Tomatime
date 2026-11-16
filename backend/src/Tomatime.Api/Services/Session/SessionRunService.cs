@@ -29,7 +29,7 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
         if (session is null) return new(RewardActionStatus.NotFound);
         var user = await db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleAsync();
         var now = DateTime.UtcNow;
-        var previous = await db.RewardOperations.AsNoTracking().SingleOrDefaultAsync(o => o.Id == operationId);
+        var previous = await db.UserRewards.AsNoTracking().SingleOrDefaultAsync(o => o.OperationId == operationId);
         async Task<RewardShopState> state() => await RewardShopService.StateAsync(db, user);
         if (previous is not null)
             return previous.UserId == userId && previous.RewardId == RewardCatalog.ExtraBreak && previous.Kind == "extend-break" && previous.SessionId == sessionId
@@ -45,7 +45,7 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
         extensions[phase.BreakIndex]++;
         session.BreakExtensions = extensions;
         user.PomoBalance -= reward.Cost;
-        db.RewardOperations.Add(new Models.RewardOperation { Id = operationId, UserId = userId, RewardId = reward.Id, Kind = "extend-break", SessionId = sessionId, CreatedAt = now });
+        db.UserRewards.Add(new UserReward { OperationId = operationId, UserId = userId, RewardId = reward.Id, Kind = "extend-break", SessionId = sessionId, CreatedAt = now });
         await db.SaveChangesAsync();
         var result = await state();
         await tx.CommitAsync();
@@ -115,9 +115,9 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
             session.ActualStartTime is null || now < session.ActualStartTime.Value.AddMinutes(25))
             return;
 
-        var pending = await db.RewardOperations.Where(o => o.UserId == userId && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" &&
+        var pending = await db.UserRewards.Where(o => o.UserId == userId && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" &&
             o.SessionId == null && o.CreatedAt <= session.ActualStartTime.Value)
-            .OrderBy(o => o.CreatedAt).ThenBy(o => o.Id).FirstOrDefaultAsync();
+            .OrderBy(o => o.CreatedAt).ThenBy(o => o.OperationId).FirstOrDefaultAsync();
         if (pending is null) return;
         var extensions = (int[])session.BreakExtensions.Clone();
         if (extensions.Length == 0) extensions = new int[session.Duration / 25 - 1];

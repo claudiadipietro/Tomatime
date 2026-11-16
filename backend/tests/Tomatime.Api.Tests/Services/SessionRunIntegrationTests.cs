@@ -110,9 +110,9 @@ public class SessionRunIntegrationTests
                 Duration = 50, Status = SessionStatus.InProgress,
             };
             db.Sessions.Add(session);
-            db.RewardOperations.Add(new RewardOperation
+            db.UserRewards.Add(new UserReward
             {
-                Id = Guid.NewGuid(), UserId = user.Id, RewardId = RewardCatalog.ExtraBreak,
+                OperationId = Guid.NewGuid(), UserId = user.Id, RewardId = RewardCatalog.ExtraBreak,
                 Kind = "extra-break", CreatedAt = now.AddMinutes(-58),
             });
             await db.SaveChangesAsync();

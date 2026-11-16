@@ -11,7 +11,7 @@ public sealed class RewardShopService(AppDbContext db) : IRewardShopService
         var owned = await db.UserRewards.Where(r => r.UserId == user.Id)
             .Select(r => r.RewardId).ToListAsync();
         return new(user.PomoBalance,
-            await db.RewardOperations.CountAsync(o => o.UserId == user.Id && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" && o.SessionId == null),
+            await db.UserRewards.CountAsync(o => o.UserId == user.Id && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" && o.SessionId == null),
             user.CurrentTheme, owned.Contains(RewardCatalog.Pink), owned.Contains(RewardCatalog.Blue));
     }
 
@@ -33,7 +33,7 @@ public sealed class RewardShopService(AppDbContext db) : IRewardShopService
         await using var tx = await db.Database.BeginTransactionAsync();
         var user = await db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleOrDefaultAsync();
         if (user is null) return new(RewardActionStatus.NotFound);
-        var previous = await db.RewardOperations.AsNoTracking().SingleOrDefaultAsync(o => o.Id == operationId);
+        var previous = await db.UserRewards.AsNoTracking().SingleOrDefaultAsync(o => o.OperationId == operationId);
         if (previous is not null)
             return previous.UserId == userId && previous.RewardId == rewardId && previous.Kind == kind
                 ? new(RewardActionStatus.Success, await StateAsync(db, user)) : new(RewardActionStatus.InvalidOperation);
@@ -43,9 +43,7 @@ public sealed class RewardShopService(AppDbContext db) : IRewardShopService
         var reward = await db.Rewards.SingleAsync(r => r.Id == rewardId);
         if (user.PomoBalance < reward.Cost) return new(RewardActionStatus.InsufficientBalance);
         user.PomoBalance -= reward.Cost;
-        if (rewardId != RewardCatalog.ExtraBreak)
-            db.UserRewards.Add(new UserReward { UserId = userId, RewardId = rewardId });
-        db.RewardOperations.Add(new RewardOperation { Id = operationId, UserId = userId, RewardId = rewardId, Kind = kind, CreatedAt = DateTime.UtcNow });
+        db.UserRewards.Add(new UserReward { OperationId = operationId, UserId = userId, RewardId = rewardId, Kind = kind, CreatedAt = DateTime.UtcNow });
         await db.SaveChangesAsync();
         var state = await StateAsync(db, user);
         await tx.CommitAsync();

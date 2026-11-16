@@ -20,4 +20,23 @@ public class UserReward
     /// </summary>
     public int RewardId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the unique identifier for the operation.
+    /// </summary>
+    public Guid? OperationId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the kind of the user reward.
+    /// </summary>
+    public string? Kind { get; set; }
+
+    /// <summary>
+    /// Gets or sets the unique identifier for the session.
+    /// </summary>
+    public int? SessionId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the creation date and time of the user reward.
+    /// </summary>
+    public DateTime? CreatedAt { get; set; }
 }

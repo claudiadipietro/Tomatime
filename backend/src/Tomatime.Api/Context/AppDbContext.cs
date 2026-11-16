@@ -11,7 +11,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 	public DbSet<Session> Sessions => Set<Session>();
 	public DbSet<UserReward> UserRewards => Set<UserReward>();
 	public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
-	public DbSet<RewardOperation> RewardOperations => Set<RewardOperation>();
 	public DbSet<PushDevice> PushDevices => Set<PushDevice>();
 	public DbSet<ReminderDelivery> ReminderDeliveries => Set<ReminderDelivery>();
 
@@ -65,8 +64,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 		modelBuilder.Entity<UserReward>(entity =>
 		{
 			entity.HasKey(userReward => userReward.Id);
+			entity.Property(userReward => userReward.Kind).HasMaxLength(32);
+			entity.HasIndex(userReward => userReward.OperationId).IsUnique();
 			entity.HasIndex(userReward => new { userReward.UserId, userReward.RewardId })
-				.IsUnique();
+				.IsUnique()
+				.HasFilter($"\"RewardId\" <> {RewardCatalog.ExtraBreak}");
 
 			entity.HasOne<User>()
 				.WithMany()
@@ -76,7 +78,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.HasOne<Reward>()
 				.WithMany()
 				.HasForeignKey(userReward => userReward.RewardId)
-				.OnDelete(DeleteBehavior.Cascade);
+				.OnDelete(DeleteBehavior.Restrict);
 		});
 
 		modelBuilder.Entity<PasswordResetToken>(entity =>
@@ -89,13 +91,6 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 				.WithMany()
 				.HasForeignKey(token => token.UserId)
 				.OnDelete(DeleteBehavior.Cascade);
-		});
-		modelBuilder.Entity<RewardOperation>(entity =>
-		{
-			entity.HasKey(operation => operation.Id);
-			entity.Property(operation => operation.Kind).HasMaxLength(32).IsRequired();
-			entity.HasOne<User>().WithMany().HasForeignKey(operation => operation.UserId).OnDelete(DeleteBehavior.Cascade);
-			entity.HasOne<Reward>().WithMany().HasForeignKey(operation => operation.RewardId).OnDelete(DeleteBehavior.Restrict);
 		});
 		modelBuilder.Entity<PushDevice>(entity =>
 		{
