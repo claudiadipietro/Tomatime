@@ -42,7 +42,7 @@ The legacy `/api/users/profile/{userId}`, `/api/users/{userId}/rewards`, `/api/u
 
 Extra breaks bought in the shop are applied at the first break of a later eligible session. A session without breaks, or one cancelled before its first break, leaves the purchase pending. Extra breaks can also be bought during a break and are applied immediately.
 
-The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. The timer includes a five-minute break between focus blocks. Completing the entire session awards two pomos per focus block, once; leaving or reloading cancels it without a reward. The timer requires an active connection: if activity is not received for two minutes, the server cancels the session.
+The new-session screen starts a spontaneous session with 25–300 minutes of focus in 25-minute blocks. The dashboard can also start the earliest previously planned session, including one whose planned time has passed. The timer includes a five-minute break between focus blocks. Sessions continue while the screen is locked, the page is closed or the connection is unavailable, and can be resumed from the dashboard after signing in. The server verifies elapsed time; returning after the timer ends completes the session and awards two pomos per focus block, once. Cancelling explicitly awards nothing. Active sessions remain available until completed or cancelled.
 
 The planning screen saves a future session without starting it. Dates and times are entered in the device's local time zone and sent to the API in UTC.
 

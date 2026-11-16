@@ -58,7 +58,7 @@ describe('API URL configuration', () => {
     }
   });
 
-  it('preserves local URLs and resolves the pagehide cancellation URL', () => {
+  it('preserves local URLs and resolves API URLs against the configured origin', () => {
     expect(apiUrl('/api/session-runs/12/cancel', '')).toBe('/api/session-runs/12/cancel');
     expect(apiUrl('/api/session-runs/12/cancel', origin)).toBe(`${origin}/api/session-runs/12/cancel`);
     expect(() => apiUrl('//other.example.test/api', origin)).toThrow();

@@ -46,6 +46,13 @@ export class MainScreenComponent {
     return hours > 0 ? `${hours} h${remainder > 0 ? ` ${remainder} min` : ''}` : `${minutes} min`;
   });
 
+  formatSessionDate(date: string): string {
+    return new Intl.DateTimeFormat(this.language.currentLanguage() || 'en', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(new Date(date));
+  }
+
   constructor() {
     this.loadDashboard();
   }

@@ -100,6 +100,18 @@ describe('Main screen navigation', () => {
     http.expectNone('/api/session-starts');
   });
 
+  it('offers active sessions for resumption after signing in', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    await harness.navigateByUrl('/home', MainScreenComponent);
+    http.expectOne('/api/dashboard').flush({
+      pomoBalance: 0, nextSession: null, focusMinutes: 0, completedSessions: 0,
+      activeSessions: [{ id: 12, duration: 25, actualStartTime: new Date().toISOString() }],
+    });
+    await harness.fixture.whenStable();
+    expect(harness.routeNativeElement?.querySelector('a[href="/sessions/12/timer"]')).toBeTruthy();
+  });
+
   it('keeps the planned session visible if starting it fails', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
