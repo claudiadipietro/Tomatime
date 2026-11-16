@@ -63,7 +63,6 @@ public class SessionRunControllerTests
             return Task.FromResult(Result);
         }
 
-        public Task CancelExpiredAsync() => Task.CompletedTask;
         public Task<RewardActionResult> ExtendBreakAsync(int userId, int sessionId, Guid operationId) =>
             Task.FromResult(new RewardActionResult(RewardActionStatus.InvalidOperation));
     }

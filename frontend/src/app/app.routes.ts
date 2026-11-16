@@ -1,9 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './services/auth.guard';
-import { CanDeactivateFn } from '@angular/router';
 import { TimerComponent } from './components/timer-component/timer-component';
-
-const leaveTimer: CanDeactivateFn<TimerComponent> = (component) => component.leave();
 
 export const routes: Routes = [
   {
@@ -93,7 +90,6 @@ export const routes: Routes = [
   {
     path: 'sessions/:id/timer',
     canActivate: [authGuard],
-    canDeactivate: [leaveTimer],
     component: TimerComponent,
   },
   {

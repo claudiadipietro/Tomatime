@@ -12,12 +12,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, map, Observable, of, Subject, switchMap, take, finalize } from 'rxjs';
+import { finalize } from 'rxjs';
 import { AuthSessionService } from '../../services/auth-session.service';
 import { ActiveSession, SessionService } from '../../services/session.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { RewardOperationService } from '../../services/reward-operation.service';
-import { API_ORIGIN, apiUrl } from '../../services/api-url';
 
 @Component({
   selector: 'app-timer',
@@ -29,19 +28,18 @@ export class TimerComponent {
   private readonly sessions = inject(SessionService);
   private readonly operations = inject(RewardOperationService);
   private readonly auth = inject(AuthSessionService);
-  private readonly apiOrigin = inject(API_ORIGIN);
   private readonly destroyRef = inject(DestroyRef);
   private readonly id = Number(inject(ActivatedRoute).snapshot.paramMap.get('id'));
   private readonly token = this.auth.accessToken ?? '';
-  private readonly storageKey = `tomatime.timer.${this.id}`;
   private readonly leaveDialog = viewChild.required<ElementRef<HTMLDialogElement>>('leaveDialog');
-  private readonly leaveDecision = new Subject<boolean>();
   private readonly now = signal(0);
   private serverAtSync = 0;
   private monotonicAtSync = 0;
   private completing = false;
   private leaving = false;
   private wasBreak = false;
+  private syncing = false;
+  private heartbeatSequence = 0;
 
   readonly session = signal<ActiveSession | null>(null);
   readonly state = signal<'loading' | 'active' | 'completed' | 'ended'>('loading');
@@ -114,11 +112,6 @@ export class TimerComponent {
       this.state.set('ended');
       return;
     }
-    if (sessionStorage.getItem(this.storageKey)) {
-      this.cancelAfterReload();
-      return;
-    }
-    sessionStorage.setItem(this.storageKey, 'active');
     this.heartbeat();
     const clock = window.setInterval(() => this.tick(), 1000);
     const activity = window.setInterval(() => this.heartbeat(), 30_000);
@@ -130,12 +123,15 @@ export class TimerComponent {
 
   private heartbeat(): void {
     if (this.state() === 'completed' || this.state() === 'ended' || this.leaving) return;
+    const sequence = ++this.heartbeatSequence;
     this.sessions
       .heartbeat(this.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (session) => {
+          if (sequence !== this.heartbeatSequence || this.state() === 'completed' || this.state() === 'ended' || this.leaving) return;
           if (Date.parse(session.serverTime) < this.serverAtSync) return;
+          this.syncing = false;
           this.serverAtSync = Date.parse(session.serverTime);
           this.monotonicAtSync = performance.now();
           this.now.set(this.serverAtSync);
@@ -146,7 +142,7 @@ export class TimerComponent {
           this.tick();
         },
         error: (error: HttpErrorResponse) => {
-          if (this.completing) return;
+          if (sequence !== this.heartbeatSequence || this.completing || this.leaving || this.state() === 'completed' || this.state() === 'ended') return;
           if (error.status === 404 || error.status === 401) {
             this.state.set('ended');
             this.error.set('timer.ended');
@@ -158,7 +154,7 @@ export class TimerComponent {
   }
 
   private tick(): void {
-    if (this.state() !== 'active') return;
+    if (this.state() !== 'active' || this.syncing || document.hidden) return;
     this.now.set(this.serverAtSync + (performance.now() - this.monotonicAtSync));
     const inBreak = this.isBreak();
     const enteredBreak = inBreak && !this.wasBreak;
@@ -205,68 +201,48 @@ export class TimerComponent {
       });
   }
 
-  leave(): boolean | Observable<boolean> {
-    if (this.state() === 'completed' || this.state() === 'ended' || !this.token) return true;
+  confirmCancellation(): void {
     this.leaveDialog().nativeElement.showModal();
-    return this.leaveDecision.pipe(
-      take(1),
-      switchMap((confirmed) => {
-        if (!confirmed) return of(false);
-        if (this.state() === 'completed' || this.state() === 'ended') return of(true);
-        this.leaving = true;
-        this.cancellationPending.set(true);
-        return this.sessions.cancel(this.id, this.token).pipe(
-          map(() => true),
-          catchError((error: HttpErrorResponse) => {
-            if (error.status === 404) return of(true);
-            this.leaving = false;
-            this.error.set('timer.cancelError');
-            return of(false);
-          }),
-        );
-      }),
-      finalize(() => {
-        this.cancellationPending.set(false);
-        this.leaveDialog().nativeElement.close();
-      }),
-    );
   }
 
   decideLeave(confirmed: boolean): void {
     if (this.cancellationPending()) return;
-    this.leaveDecision.next(confirmed);
-  }
-
-  @HostListener('window:beforeunload', ['$event'])
-  onBeforeUnload(event: BeforeUnloadEvent): void {
-    if (this.state() === 'completed' || this.state() === 'ended' || !this.token) return;
-    event.preventDefault();
-    event.returnValue = '';
-  }
-
-  @HostListener('window:pagehide')
-  onPageHide(): void {
-    if (this.state() === 'completed' || this.state() === 'ended' || !this.token) return;
-    void fetch(apiUrl(`/api/session-runs/${this.id}/cancel`, this.apiOrigin), {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${this.token}` },
-      keepalive: true,
-    });
-  }
-
-  private cancelAfterReload(): void {
+    if (!confirmed) {
+      this.leaveDialog().nativeElement.close();
+      return;
+    }
+    this.leaving = true;
+    this.cancellationPending.set(true);
     this.sessions
       .cancel(this.id, this.token)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.cancellationPending.set(false);
+          this.leaveDialog().nativeElement.close();
+        }),
+      )
       .subscribe({
         next: () => {
           this.state.set('ended');
           this.error.set('timer.ended');
         },
         error: (error: HttpErrorResponse) => {
-          this.state.set('ended');
-          this.error.set(error.status === 404 ? 'timer.ended' : 'timer.cancelPending');
+          if (error.status === 404) {
+            this.state.set('ended');
+            this.error.set('timer.ended');
+          } else {
+            this.leaving = false;
+            this.error.set('timer.cancelError');
+          }
         },
       });
+  }
+
+  @HostListener('document:visibilitychange')
+  onVisibilityChange(): void {
+    this.syncing = true;
+    this.heartbeatSequence++;
+    if (!document.hidden) this.heartbeat();
   }
 }

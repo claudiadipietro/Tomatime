@@ -11,5 +11,4 @@ public interface ISessionRunService
     Task<bool> CancelAsync(int userId, int sessionId);
     Task<CompletionResult> CompleteAsync(int userId, int sessionId);
     Task<RewardActionResult> ExtendBreakAsync(int userId, int sessionId, Guid operationId);
-    Task CancelExpiredAsync();
 }

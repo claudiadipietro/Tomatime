@@ -20,6 +20,17 @@
     </div>
   } @else if (dashboard(); as data) {
     <div class="cards">
+      @for (active of data.activeSessions; track active.id) {
+        <section class="card">
+          <div>
+            <h2>{{ 'dashboard.activeSession' | translate }}</h2>
+            <p>{{ 'dashboard.minutes' | translate: { count: active.duration } }}<br />{{ formatSessionDate(active.actualStartTime) }}</p>
+          </div>
+          <a class="card-action" [routerLink]="['/sessions', active.id, 'timer']">
+            {{ 'dashboard.resumeSession' | translate }}
+          </a>
+        </section>
+      }
       <section class="card">
         <div>
           <h2><span aria-hidden="true">🔜</span> {{ 'dashboard.nextSession' | translate }}</h2>

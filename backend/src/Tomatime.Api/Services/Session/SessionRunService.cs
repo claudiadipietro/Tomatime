@@ -6,33 +6,15 @@ namespace Tomatime.Api.Services;
 
 public sealed class SessionRunService(AppDbContext db) : ISessionRunService
 {
-    private static readonly TimeSpan ActivityTimeout = TimeSpan.FromMinutes(2);
-
     public async Task<ActiveSession?> HeartbeatAsync(int userId, int sessionId)
     {
         await using var tx = await db.Database.BeginTransactionAsync();
         var session = await db.Sessions.FromSqlInterpolated($"SELECT * FROM \"Sessions\" WHERE \"Id\" = {sessionId} AND \"UserId\" = {userId} FOR UPDATE").SingleOrDefaultAsync();
-        if (session?.Status != SessionStatus.InProgress || session.ActualStartTime is null ||
-            session.LastActivityAt is null)
+        if (session?.Status != SessionStatus.InProgress || session.ActualStartTime is null)
             return null;
         var user = await db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleAsync();
         var now = DateTime.UtcNow;
-        if (session.LastActivityAt < now - ActivityTimeout) return null;
-        if (session.Duration > 25 && now >= session.ActualStartTime.Value.AddMinutes(25) && !session.StoredBreakApplied)
-        {
-            var pending = await db.RewardOperations.Where(o => o.UserId == userId && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" &&
-                o.SessionId == null && o.CreatedAt <= session.ActualStartTime.Value)
-                .OrderBy(o => o.CreatedAt).ThenBy(o => o.Id).FirstOrDefaultAsync();
-            if (pending is not null)
-            {
-                var extensions = (int[])session.BreakExtensions.Clone();
-                if (extensions.Length == 0) extensions = new int[session.Duration / 25 - 1];
-                extensions[0]++;
-                session.BreakExtensions = extensions;
-                session.StoredBreakApplied = true;
-                pending.SessionId = session.Id;
-            }
-        }
+        await ApplyStoredBreakAsync(session, userId, now);
         session.LastActivityAt = now;
         await db.SaveChangesAsync();
         await tx.CommitAsync();
@@ -52,8 +34,7 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
         if (previous is not null)
             return previous.UserId == userId && previous.RewardId == RewardCatalog.ExtraBreak && previous.Kind == "extend-break" && previous.SessionId == sessionId
                 ? new(RewardActionStatus.Success, await state()) : new(RewardActionStatus.InvalidOperation);
-        if (session.Status != SessionStatus.InProgress || session.ActualStartTime is null ||
-            session.LastActivityAt is null || session.LastActivityAt < now - ActivityTimeout)
+        if (session.Status != SessionStatus.InProgress || session.ActualStartTime is null)
             return new(RewardActionStatus.NotFound);
         var phase = BreakSchedule.At(session.Duration, session.BreakExtensions, now - session.ActualStartTime.Value);
         if (!phase.InBreak) return new(RewardActionStatus.InvalidOperation);
@@ -92,19 +73,21 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
             await transaction.CommitAsync();
             return new(CompletionStatus.NotFound);
         }
-        if (session?.ActualStartTime is null || session.LastActivityAt is null ||
-            session.LastActivityAt < now - ActivityTimeout)
+        if (session.ActualStartTime is null)
         {
             return new(CompletionStatus.NotFound);
         }
 
+        await db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleAsync();
+        await ApplyStoredBreakAsync(session, userId, now);
         var totalMinutes = BreakSchedule.TotalMinutes(session.Duration, session.BreakExtensions);
         if (session.ActualStartTime.Value.AddMinutes(totalMinutes) > now)
             return new(CompletionStatus.TooEarly);
 
+        await db.SaveChangesAsync();
         var pomos = SessionTiming.EarnedPomos(session.Duration);
         var updated = await db.Sessions.Where(s => s.Id == sessionId && s.UserId == userId &&
-            s.Status == SessionStatus.InProgress && s.LastActivityAt >= now - ActivityTimeout &&
+            s.Status == SessionStatus.InProgress &&
             s.ActualStartTime == session.ActualStartTime && s.Duration == session.Duration)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Completed)
                 .SetProperty(x => x.PomosEarned, pomos)
@@ -126,11 +109,21 @@ public sealed class SessionRunService(AppDbContext db) : ISessionRunService
         return new(CompletionStatus.Completed, new SessionCompletion(pomos));
     }
 
-    public async Task CancelExpiredAsync()
+    private async Task ApplyStoredBreakAsync(Models.Session session, int userId, DateTime now)
     {
-        var cutoff = DateTime.UtcNow - ActivityTimeout;
-        await db.Sessions.Where(s => s.Status == SessionStatus.InProgress &&
-                                     (s.LastActivityAt == null || s.LastActivityAt < cutoff))
-            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Cancelled));
+        if (session.Duration <= 25 || session.StoredBreakApplied ||
+            session.ActualStartTime is null || now < session.ActualStartTime.Value.AddMinutes(25))
+            return;
+
+        var pending = await db.RewardOperations.Where(o => o.UserId == userId && o.RewardId == RewardCatalog.ExtraBreak && o.Kind == "extra-break" &&
+            o.SessionId == null && o.CreatedAt <= session.ActualStartTime.Value)
+            .OrderBy(o => o.CreatedAt).ThenBy(o => o.Id).FirstOrDefaultAsync();
+        if (pending is null) return;
+        var extensions = (int[])session.BreakExtensions.Clone();
+        if (extensions.Length == 0) extensions = new int[session.Duration / 25 - 1];
+        extensions[0]++;
+        session.BreakExtensions = extensions;
+        session.StoredBreakApplied = true;
+        pending.SessionId = session.Id;
     }
 }

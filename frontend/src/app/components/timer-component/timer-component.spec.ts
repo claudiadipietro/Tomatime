@@ -75,98 +75,92 @@ describe('Session timer', () => {
     expect(
       harness.routeNativeElement?.querySelector('.confetti')?.getAttribute('aria-hidden'),
     ).toBe('true');
-    expect(component.leave()).toBe(true);
   });
 
-  it('cancels before navigating away and blocks navigation if cancellation fails', async () => {
+  it('keeps the session active when navigating home', async () => {
     const { harness, component } = await open(10);
     const router = TestBed.inject(Router);
-    const first = router.navigateByUrl('/home');
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(harness.routeNativeElement!.querySelector('dialog')!.open).toBe(true);
-    harness.routeNativeElement!.querySelector<HTMLButtonElement>('dialog .cancel')!.click();
-    http.expectOne('/api/session-runs/12/cancel').flush('', { status: 500, statusText: 'Error' });
-    expect(await first).toBe(false);
-    expect(component.error()).toBe('timer.cancelError');
-    const second = router.navigateByUrl('/home');
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    harness.routeNativeElement!.querySelector<HTMLButtonElement>('dialog .cancel')!.click();
-    http
-      .expectOne('/api/session-runs/12/cancel')
-      .flush(null, { status: 204, statusText: 'No Content' });
-    expect(await second).toBe(true);
-    http
-      .expectOne('/api/dashboard')
-      .flush({ pomoBalance: 0, nextSession: null, focusMinutes: 0, completedSessions: 0 });
-    await harness.fixture.whenStable();
-  });
-
-  it('keeps the session active when the user declines to leave', async () => {
-    const { harness, component } = await open(10);
-    const router = TestBed.inject(Router);
-    const navigation = router.navigateByUrl('/home');
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    harness
-      .routeNativeElement!.querySelector<HTMLButtonElement>('dialog .dialog-continue')!
-      .click();
-    expect(await navigation).toBe(false);
-    expect(router.url).toBe('/sessions/12/timer');
+    expect(await router.navigateByUrl('/home')).toBe(true);
     expect(component.state()).toBe('active');
     http.expectNone('/api/session-runs/12/cancel');
-  });
-
-  it('asks before opening history from an active session', async () => {
-    const { harness } = await open(10);
-    harness.routeNativeElement!.querySelector<HTMLButtonElement>('.menu-toggle')!.click();
-    harness.detectChanges();
-    harness
-      .routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/sessions/history"]')!
-      .click();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(harness.routeNativeElement!.querySelector('dialog')!.open).toBe(true);
-    harness.routeNativeElement!.querySelector<HTMLButtonElement>('dialog .cancel')!.click();
     http
-      .expectOne('/api/session-runs/12/cancel')
-      .flush(null, { status: 204, statusText: 'No Content' });
+      .expectOne('/api/dashboard')
+      .flush({ pomoBalance: 0, nextSession: null, focusMinutes: 0, completedSessions: 0, activeSessions: [] });
     await harness.fixture.whenStable();
-    expect(TestBed.inject(Router).url).toBe('/sessions/history');
-    http.expectOne('/api/session-history').flush([]);
   });
 
-  it('requests a browser confirmation for reload while active but not after completion', async () => {
-    const { component } = await open(10);
-    const activeEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(activeEvent);
-    expect(activeEvent.defaultPrevented).toBe(true);
-    component.state.set('completed');
-    const completedEvent = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent;
-    component.onBeforeUnload(completedEvent);
-    expect(completedEvent.defaultPrevented).toBe(false);
+  it('only cancels on confirmation and allows retry after an error', async () => {
+    const { harness, component } = await open(10);
+    component.confirmCancellation();
+    component.decideLeave(false);
+    http.expectNone('/api/session-runs/12/cancel');
+    component.confirmCancellation();
+    component.decideLeave(true);
+    http.expectOne('/api/session-runs/12/cancel').flush('', { status: 500, statusText: 'Error' });
+    expect(component.error()).toBe('timer.cancelError');
+    expect(component.state()).toBe('active');
+    component.confirmCancellation();
+    component.decideLeave(true);
+    http.expectOne('/api/session-runs/12/cancel').flush(null, { status: 204, statusText: 'No Content' });
+    expect(component.state()).toBe('ended');
+    await harness.fixture.whenStable();
   });
 
-  it('sends an authenticated keepalive cancellation on pagehide', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response());
-    try {
-      const { component } = await open(10);
-      component.onPageHide();
-      expect(fetchMock).toHaveBeenCalledWith('/api/session-runs/12/cancel', {
-        method: 'POST',
-        headers: { Authorization: 'Bearer token' },
-        keepalive: true,
-      });
-    } finally {
-      fetchMock.mockRestore();
-    }
-  });
-
-  it('cancels a session on reload rather than resuming it', async () => {
+  it('resumes a previously opened session on reload', async () => {
     sessionStorage.setItem('tomatime.timer.12', 'active');
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/sessions/12/timer', TimerComponent);
-    http
-      .expectOne('/api/session-runs/12/cancel')
-      .flush(null, { status: 204, statusText: 'No Content' });
-    expect(component.state()).toBe('ended');
-    http.expectNone('/api/session-runs/12/heartbeat');
+    const now = Date.now();
+    http.expectOne('/api/session-runs/12/heartbeat').flush({
+      id: 12, duration: 25, actualStartTime: new Date(now - 180_000).toISOString(),
+      serverTime: new Date(now).toISOString(), breakExtensions: [], pomoBalance: 0,
+    });
+    expect(component.state()).toBe('active');
+    expect(component.remaining()).toBe('22:00');
+    http.expectNone('/api/session-runs/12/cancel');
+  });
+
+  it('resynchronizes after the screen is unlocked and completes if time elapsed', async () => {
+    const { component } = await open(10);
+    const hidden = vi.spyOn(document, 'hidden', 'get');
+    try {
+      hidden.mockReturnValue(true);
+      document.dispatchEvent(new Event('visibilitychange'));
+      window.dispatchEvent(new Event('pagehide'));
+      http.expectNone('/api/session-runs/12/cancel');
+      hidden.mockReturnValue(false);
+      document.dispatchEvent(new Event('visibilitychange'));
+      const now = Date.now();
+      http.expectOne('/api/session-runs/12/heartbeat').flush({
+        id: 12, duration: 50, actualStartTime: new Date(now - 3300_000).toISOString(),
+        serverTime: new Date(now).toISOString(), breakExtensions: [], pomoBalance: 0,
+      });
+      http.expectOne('/api/session-runs/12/complete').flush({ pomosEarned: 4 });
+      expect(component.state()).toBe('completed');
+    } finally {
+      hidden.mockRestore();
+    }
+  });
+
+  it('ignores a stale heartbeat that returns after the screen is unlocked', async () => {
+    const { component } = await open(10);
+    const hidden = vi.spyOn(document, 'hidden', 'get');
+    try {
+      hidden.mockReturnValue(false);
+      document.dispatchEvent(new Event('visibilitychange'));
+      const stale = http.expectOne('/api/session-runs/12/heartbeat');
+      hidden.mockReturnValue(true);
+      document.dispatchEvent(new Event('visibilitychange'));
+      hidden.mockReturnValue(false);
+      document.dispatchEvent(new Event('visibilitychange'));
+      const fresh = http.expectOne('/api/session-runs/12/heartbeat');
+      const now = Date.now();
+      const started = new Date(now - 600_000).toISOString();
+      fresh.flush({ id: 12, duration: 50, actualStartTime: started, serverTime: new Date(now).toISOString() });
+      stale.flush({ id: 12, duration: 50, actualStartTime: started, serverTime: new Date(now + 1000).toISOString() });
+      expect(component.elapsed()).toBe(600);
+    } finally {
+      hidden.mockRestore();
+    }
   });
 });

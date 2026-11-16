@@ -3,7 +3,7 @@
   <h1>{{ 'timer.title' | translate }}</h1>
   @if (state() === 'loading') {
     <p role="status">{{ 'timer.loading' | translate }}</p>
-    <a class="cancel" routerLink="/home">{{ 'timer.leave' | translate }}</a>
+    <a class="cancel" routerLink="/home">{{ 'timer.home' | translate }}</a>
   } @else if (state() === 'active') {
     <p class="block-label">
       {{ 'timer.block' | translate: { current: block(), total: blocks() } }}
@@ -47,7 +47,8 @@
         {{ 'timer.retry' | translate }}
       </button>
     }
-    <a class="cancel" routerLink="/home">{{ 'timer.leave' | translate }}</a>
+    <a class="primary" routerLink="/home">{{ 'timer.home' | translate }}</a>
+    <button class="cancel" type="button" (click)="confirmCancellation()">{{ 'timer.leave' | translate }}</button>
   } @else if (state() === 'completed') {
     <div class="confetti" aria-hidden="true">
       @for (piece of confetti; track piece) {

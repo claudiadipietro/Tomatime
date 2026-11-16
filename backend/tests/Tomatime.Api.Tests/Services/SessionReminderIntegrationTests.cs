@@ -18,6 +18,7 @@ public sealed class PushDatabaseFactAttribute : FactAttribute
     }
 }
 
+[Collection("Database integration")]
 public class SessionReminderIntegrationTests
 {
     [PushDatabaseFact]
