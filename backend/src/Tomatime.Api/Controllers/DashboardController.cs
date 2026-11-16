@@ -42,11 +42,18 @@ public sealed class DashboardController : ControllerBase
             .Select(session => new DashboardSession(session.Id, session.PlannedStartTime, session.Duration))
             .FirstOrDefault();
         var completed = userSessions.Where(session => session.Status == SessionStatus.Completed).ToList();
+        var active = userSessions
+            .Where(session => session.Status == SessionStatus.InProgress && session.ActualStartTime.HasValue)
+            .OrderByDescending(session => session.ActualStartTime)
+            .ThenByDescending(session => session.Id)
+            .Select(session => new DashboardActiveSession(session.Id, session.ActualStartTime!.Value, session.Duration))
+            .ToList();
 
         return Ok(new DashboardResponse(
             user.PomoBalance,
             next,
             completed.Count,
-            completed.Sum(session => (long)session.Duration)));
+            completed.Sum(session => (long)session.Duration),
+            active));
     }
 }

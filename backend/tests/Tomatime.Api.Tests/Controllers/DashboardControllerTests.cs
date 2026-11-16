@@ -37,6 +37,7 @@ public class DashboardControllerTests
         Assert.NotNull(response.NextSession);
         Assert.Equal(42, response.NextSession.Id);
         Assert.Equal(10, response.NextSession.Duration);
+        Assert.Equal(51, Assert.Single(response.ActiveSessions).Id);
         Assert.NotEmpty(typeof(DashboardController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
     }
 
@@ -79,6 +80,7 @@ public class DashboardControllerTests
                 new() { Status = SessionStatus.Completed, Duration = 50 },
                 new() { Status = SessionStatus.Completed, Duration = 25 },
                 new() { Status = SessionStatus.Cancelled, Duration = 100 },
+                new() { Id = 51, Status = SessionStatus.InProgress, ActualStartTime = now.AddMinutes(-3), Duration = 25 },
             });
         }
         public Task<Session?> GetSessionByIdAsync(int sessionId) => throw new NotImplementedException();
