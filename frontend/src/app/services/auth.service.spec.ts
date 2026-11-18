@@ -63,6 +63,7 @@ describe('AuthService', () => {
     const httpRequest = httpTestingController.expectOne('/api/auth/login');
     expect(httpRequest.request.method).toBe('POST');
     expect(httpRequest.request.body).toEqual(request);
+    expect(httpRequest.request.withCredentials).toBe(true);
     httpRequest.flush({
       userId: 7,
       name: 'Jane Doe',
@@ -70,5 +71,21 @@ describe('AuthService', () => {
       accessToken: 'jwt-token',
       expiresAt: new Date(Date.now() + 60_000).toISOString(),
     });
+  });
+
+  it('restores a closed PWA session through the refresh cookie', () => {
+    authService.restoreSession().subscribe();
+
+    const request = httpTestingController.expectOne('/api/auth/refresh');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({
+      userId: 7,
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      accessToken: 'renewed-jwt',
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+
+    expect(authSession.accessToken).toBe('renewed-jwt');
   });
 });

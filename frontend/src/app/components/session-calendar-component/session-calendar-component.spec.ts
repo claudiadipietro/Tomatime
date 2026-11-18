@@ -50,8 +50,12 @@ describe('Session calendar', () => {
   }
 
   it('requires authentication', async () => {
+    TestBed.inject(AuthSessionService).clear();
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/sessions/calendar', LoginComponent);
+    const navigation = harness.navigateByUrl('/sessions/calendar', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await navigation;
     http.expectNone('/api/sessions/calendar');
   });
 
@@ -228,6 +232,7 @@ describe('Session calendar', () => {
       status: 401,
       statusText: 'Unauthorized',
     });
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
     await harness.fixture.whenStable();
     expect(component.selected().getMonth()).toBe(now.getMonth());
     expect(TestBed.inject(Router).url).toBe('/login');

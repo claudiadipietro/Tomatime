@@ -46,8 +46,12 @@ describe('Profile', () => {
   }
 
   it('requires authentication', async () => {
+    TestBed.inject(AuthSessionService).clear();
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/profile', LoginComponent);
+    const navigation = harness.navigateByUrl('/profile', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await navigation;
     http.expectNone('/api/users/profile');
   });
 
@@ -126,14 +130,16 @@ describe('Profile', () => {
     expect(component.deviceSubscribed()).toBe(true);
   });
 
-  it('does not sign out if removing the device subscription fails', async () => {
+  it('signs out even if removing the device subscription fails', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/profile', ProfileComponent);
     http.expectOne('/api/users/profile').flush(profile);
     push.unsubscribe.mockRejectedValueOnce(new Error('offline'));
-    await component.logout();
-    expect(component.notificationError()).toBe('profile.logoutError');
-    expect(TestBed.inject(AuthSessionService).accessToken).toBe('token');
+    const logout = component.logout();
+    await Promise.resolve();
+    http.expectOne('/api/auth/logout').flush(null, { status: 204, statusText: 'No Content' });
+    await logout;
+    expect(TestBed.inject(AuthSessionService).accessToken).toBeNull();
   });
 });

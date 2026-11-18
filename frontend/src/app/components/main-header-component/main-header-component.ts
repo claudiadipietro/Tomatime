@@ -1,7 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 import { LanguagePickerComponent } from '../language-picker-component/language-picker-component';
 import { PushNotificationsService } from '../../services/push-notifications.service';
 
@@ -12,7 +13,7 @@ import { PushNotificationsService } from '../../services/push-notifications.serv
   styleUrl: './main-header-component.css',
 })
 export class MainHeaderComponent {
-  private readonly session = inject(AuthSessionService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly push = inject(PushNotificationsService);
   menuOpen = false;
@@ -21,9 +22,13 @@ export class MainHeaderComponent {
   async logout(): Promise<void> {
     this.logoutError = false;
     try {
-      if (!await this.router.navigate(['/login'])) return;
-      await this.push.unsubscribe();
-      this.session.clear();
+      try {
+        await this.push.unsubscribe();
+      } catch {
+        // Continue logging out if push subscription cleanup fails.
+      }
+      await firstValueFrom(this.auth.logout());
+      await this.router.navigate(['/login']);
     } catch {
       this.logoutError = true;
       await this.router.navigate(['/profile'], { queryParams: { logoutError: '1' } });

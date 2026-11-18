@@ -5,7 +5,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { AuthSessionService } from '../../services/auth-session.service';
+import { AuthService } from '../../services/auth.service';
 import { Profile, ProfileService } from '../../services/profile.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { PushNotificationsService } from '../../services/push-notifications.service';
@@ -19,7 +19,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class ProfileComponent {
   private readonly service = inject(ProfileService);
-  private readonly auth = inject(AuthSessionService);
+  private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly push = inject(PushNotificationsService);
@@ -106,8 +106,13 @@ export class ProfileComponent {
   async logout(): Promise<void> {
     this.notificationError.set(null);
     try {
-      await this.push.unsubscribe();
-      if (await this.router.navigate(['/login'])) this.auth.clear();
+      try {
+        await this.push.unsubscribe();
+      } catch {
+        // Continue logging out if push subscription cleanup fails.
+      }
+      await firstValueFrom(this.auth.logout());
+      await this.router.navigate(['/login']);
     } catch {
       this.notificationError.set('profile.logoutError');
     }
