@@ -23,7 +23,6 @@ export class RewardsComponent {
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
-  readonly themes = ['default', 'pink', 'blue'] as const;
   readonly themes = computed(() => [
     'default' as const,
     ...this.catalog().filter((reward): reward is Reward & { name: 'pink' | 'blue' } =>
