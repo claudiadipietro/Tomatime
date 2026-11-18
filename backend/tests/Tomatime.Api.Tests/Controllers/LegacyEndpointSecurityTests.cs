@@ -12,7 +12,9 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.Swagger;
 using Tomatime.Api.Controllers;
+using Tomatime.Api.DTOs;
 using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
@@ -32,10 +34,20 @@ public class LegacyEndpointSecurityTests
         });
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers().AddApplicationPart(typeof(UserController).Assembly);
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
         builder.Services.AddSingleton<IProfileService, FakeProfile>();
         builder.Services.AddSingleton<IUserRewardDatabaseService, FakeRewards>();
         builder.Services.AddSingleton<ISessionDatabaseService, FakeSessions>();
         builder.Services.AddSingleton<IThemeDatabaseService, FakeThemes>();
+        builder.Services.AddSingleton<IRewardDatabaseService, FakeCatalog>();
+        builder.Services.AddSingleton<FakeFeatures>();
+        builder.Services.AddSingleton<IRewardShopService>(services => services.GetRequiredService<FakeFeatures>());
+        builder.Services.AddSingleton<ISessionCalendarService>(services => services.GetRequiredService<FakeFeatures>());
+        builder.Services.AddSingleton<ISessionHistoryService>(services => services.GetRequiredService<FakeFeatures>());
+        builder.Services.AddSingleton<ISessionPlanningService>(services => services.GetRequiredService<FakeFeatures>());
+        builder.Services.AddSingleton<ISessionStartService>(services => services.GetRequiredService<FakeFeatures>());
+        builder.Services.AddSingleton<ISessionRunService>(services => services.GetRequiredService<FakeFeatures>());
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
             options.TokenValidationParameters = new TokenValidationParameters
             {
@@ -50,14 +62,26 @@ public class LegacyEndpointSecurityTests
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();
+        var swagger = app.Services.GetRequiredService<ISwaggerProvider>().GetSwagger("v1");
+        Assert.Contains("/api/sessions", swagger.Paths.Keys);
+        Assert.Contains("/api/rewards/{rewardId}/redeem", swagger.Paths.Keys);
         await app.StartAsync();
         var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         using var client = new HttpClient { BaseAddress = new Uri(address) };
 
-        foreach (var route in new[] { "/api/users/profile/7", "/api/users/7/rewards", "/api/users/notifications/7", "/api/sessions", "/api/sessions/1" })
+        foreach (var route in new[] { "/api/users/profile/7", "/api/users/7/rewards", "/api/users/notifications/7", "/api/sessions", "/api/sessions/1", "/api/users/profile", "/api/users/rewards", "/api/sessions/history" })
+        {
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync(route)).StatusCode);
+        }
+
         Assert.Equal(HttpStatusCode.Unauthorized,
             (await client.PutAsJsonAsync("/api/users/notifications/7", true)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await client.PostAsJsonAsync("/api/rewards/-1/redeem", new { operationId = Guid.NewGuid() })).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await client.PostAsJsonAsync("/api/reward-shop/pink/purchase", new { operationId = Guid.NewGuid() })).StatusCode);
+        var catalog = await client.GetFromJsonAsync<List<Reward>>("/api/rewards");
+        Assert.Equal(5, Assert.Single(catalog!).Cost);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid-token");
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/sessions")).StatusCode);
 
@@ -76,6 +100,30 @@ public class LegacyEndpointSecurityTests
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/7/rewards")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/notifications/7")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync("/api/users/notifications/7", true)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/profile")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/notifications")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/profile")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/rewards")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/reward-shop")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/sessions/history")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/session-history")).StatusCode);
+        var operationId = Guid.NewGuid();
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/rewards/-1/redeem", new { operationId })).StatusCode);
+        var features = app.Services.GetRequiredService<FakeFeatures>();
+        Assert.Equal("pink", features.LastKind);
+        Assert.Equal(operationId, features.LastOperationId);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/reward-shop/pink/purchase", new { operationId })).StatusCode);
+        Assert.Equal("pink", features.LastKind);
+        Assert.Equal(operationId, features.LastOperationId);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/rewards/999/redeem", new { operationId = Guid.NewGuid() })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync("/api/users/theme", new { theme = "pink" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/sessions", new { duration = 50 })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/sessions", new { duration = 50, plannedStartTime = DateTimeOffset.UtcNow.AddDays(1) })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/session-starts", new { duration = 50 })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/session-plans", new { duration = 50, plannedStartTime = DateTimeOffset.UtcNow.AddDays(1) })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/sessions", new { duration = 24 })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/sessions/1/start", new { })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/session-starts/1", new { })).StatusCode);
 
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/sessions/1")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/sessions/2")).StatusCode);
@@ -149,5 +197,43 @@ public class LegacyEndpointSecurityTests
         public Task<Theme?> CreateThemeAsync(Theme theme) => throw new NotImplementedException();
         public Task<Theme?> UpdateThemeAsync(Theme theme) => throw new NotImplementedException();
         public Task<bool> DeleteThemeAsync(int themeId) => throw new NotImplementedException();
+    }
+
+    private sealed class FakeCatalog : IRewardDatabaseService
+    {
+        public Task<List<Reward>> GetAllRewardsAsync() => Task.FromResult(new List<Reward> { new() { Id = RewardCatalog.Pink, Name = "pink", Cost = 5 } });
+        public Task<Reward?> GetRewardByIdAsync(int rewardId) => Task.FromResult<Reward?>(null);
+        public Task<Reward?> CreateRewardAsync(Reward reward) => throw new NotImplementedException();
+        public Task<Reward?> UpdateRewardAsync(Reward reward) => throw new NotImplementedException();
+        public Task<bool> DeleteRewardAsync(int rewardId) => throw new NotImplementedException();
+    }
+
+    private sealed class FakeFeatures : IRewardShopService, ISessionCalendarService, ISessionHistoryService,
+        ISessionPlanningService, ISessionStartService, ISessionRunService
+    {
+        private static readonly RewardShopState State = new(5, 0, "default", false, false);
+        public string? LastKind { get; private set; }
+        public Guid LastOperationId { get; private set; }
+        public Task<RewardShopState?> GetAsync(int userId) => Task.FromResult<RewardShopState?>(State);
+        public Task<RewardActionResult> PurchaseAsync(int userId, string kind, Guid operationId)
+        {
+            LastKind = kind;
+            LastOperationId = operationId;
+            return Task.FromResult(new RewardActionResult(RewardActionStatus.Success, State));
+        }
+        public Task<RewardActionResult> ActivateAsync(int userId, string theme) =>
+            Task.FromResult(new RewardActionResult(RewardActionStatus.Success, State));
+        public Task<List<CalendarSession>> GetSessionsAsync(int userId, DateTime from, DateTime to) => Task.FromResult(new List<CalendarSession>());
+        public Task<List<SessionHistoryItem>> GetHistoryAsync(int userId) => Task.FromResult(new List<SessionHistoryItem>());
+        public Task<SessionHistoryItem?> GetHistoryItemAsync(int userId, int sessionId) => Task.FromResult<SessionHistoryItem?>(null);
+        public Task<SessionPlanningResult> PlanAsync(int userId, int duration, DateTimeOffset? plannedStartTime) =>
+            Task.FromResult(new SessionPlanningResult(SessionPlanningStatus.Planned, new PlannedSessionResponse(1, duration, plannedStartTime!.Value.UtcDateTime)));
+        public Task<SpontaneousSessionStartResult> StartSpontaneousAsync(int userId, int duration) =>
+            Task.FromResult(new SpontaneousSessionStartResult(SpontaneousSessionStartStatus.Started, new StartedSessionResponse(1, duration, DateTime.UtcNow)));
+        public Task<bool> StartPlannedAsync(int userId, int sessionId) => Task.FromResult(true);
+        public Task<ActiveSession?> HeartbeatAsync(int userId, int sessionId) => throw new NotImplementedException();
+        public Task<bool> CancelAsync(int userId, int sessionId) => throw new NotImplementedException();
+        public Task<CompletionResult> CompleteAsync(int userId, int sessionId) => throw new NotImplementedException();
+        public Task<RewardActionResult> ExtendBreakAsync(int userId, int sessionId, Guid operationId) => throw new NotImplementedException();
     }
 }

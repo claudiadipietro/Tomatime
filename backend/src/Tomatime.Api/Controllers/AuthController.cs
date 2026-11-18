@@ -18,7 +18,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Signup(SignupRequest request)
     {
-        var response = await _authService.SignupAsync(request);
+        AuthResponse? response = await _authService.SignupAsync(request);
 
         if (response is null)
         {
@@ -31,7 +31,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("/api/auth/login")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
     {
-        var response = await _authService.LoginAsync(request);
+        AuthResponse? response = await _authService.LoginAsync(request);
 
         if (response is null)
         {
@@ -55,7 +55,7 @@ public sealed class AuthController : ControllerBase
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
     {
-        var reset = await _authService.ResetPasswordAsync(request);
+        bool reset = await _authService.ResetPasswordAsync(request);
 
         return reset
             ? Ok(new { message = "Password reset successfully." })

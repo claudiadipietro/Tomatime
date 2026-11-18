@@ -11,6 +11,13 @@ export interface RewardShopState {
   blueUnlocked: boolean;
 }
 
+export interface Reward {
+  id: number;
+  name: string;
+  cost: number;
+  type: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class RewardShopService {
   private readonly http = inject(HttpClient);
@@ -18,19 +25,23 @@ export class RewardShopService {
   readonly themeError = signal(false);
 
   load(): Observable<RewardShopState> {
-    return this.http.get<RewardShopState>('/api/reward-shop').pipe(tap({
+    return this.http.get<RewardShopState>('/api/users/rewards').pipe(tap({
       next: (state) => this.apply(state),
       error: () => this.themeError.set(true),
     }));
   }
 
-  purchase(kind: 'pink' | 'blue' | 'extra-break', operationId: string): Observable<RewardShopState> {
-    return this.http.post<RewardShopState>(`/api/reward-shop/${kind}/purchase`, { operationId })
+  catalog(): Observable<Reward[]> {
+    return this.http.get<Reward[]>('/api/rewards');
+  }
+
+  purchase(rewardId: number, operationId: string): Observable<RewardShopState> {
+    return this.http.post<RewardShopState>(`/api/rewards/${rewardId}/redeem`, { operationId })
       .pipe(tap((state) => this.apply(state)));
   }
 
   activate(theme: 'default' | 'pink' | 'blue'): Observable<RewardShopState> {
-    return this.http.post<RewardShopState>(`/api/reward-shop/themes/${theme}/activate`, {})
+    return this.http.put<RewardShopState>('/api/users/theme', { theme })
       .pipe(tap((state) => this.apply(state)));
   }
 

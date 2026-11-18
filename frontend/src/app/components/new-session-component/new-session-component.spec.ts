@@ -47,7 +47,7 @@ describe('New session', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/sessions/new', LoginComponent);
     expect(TestBed.inject(Router).url).toBe('/login');
-    http.expectNone('/api/session-starts');
+    http.expectNone('/api/sessions');
   });
 
   it('adjusts the duration in 25-minute blocks within the chosen limits', async () => {
@@ -71,7 +71,7 @@ describe('New session', () => {
     component.changeDuration(25);
     component.start();
     component.start();
-    const request = http.expectOne('/api/session-starts');
+    const request = http.expectOne('/api/sessions');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ duration: 75 });
     expect(request.request.headers.has('Authorization')).toBe(true);
@@ -79,14 +79,14 @@ describe('New session', () => {
     await harness.fixture.whenStable();
     expect(component.started()).toBe(true);
     expect(TestBed.inject(Router).url).toBe('/sessions/1/timer');
-    http.expectOne('/api/session-runs/1/heartbeat').flush({
+    http.expectOne('/api/sessions/1/heartbeat').flush({
       id: 1,
       duration: 75,
       actualStartTime: new Date().toISOString(),
       serverTime: new Date().toISOString(),
     });
     component.start();
-    http.expectNone('/api/session-starts');
+    http.expectNone('/api/sessions');
   });
 
   it('shows errors and allows retry', async () => {
@@ -94,17 +94,17 @@ describe('New session', () => {
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/sessions/new', NewSessionComponent);
     component.start();
-    http.expectOne('/api/session-starts').flush('error', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/sessions').flush('error', { status: 500, statusText: 'Error' });
     await harness.fixture.whenStable();
     expect(harness.routeNativeElement?.querySelector('[role="alert"]')).toBeTruthy();
     expect(component.submitting()).toBe(false);
     component.start();
     http
-      .expectOne('/api/session-starts')
+      .expectOne('/api/sessions')
       .flush({ id: 2, duration: 50, actualStartTime: new Date().toISOString() });
     expect(component.started()).toBe(true);
     await harness.fixture.whenStable();
-    http.expectOne('/api/session-runs/2/heartbeat').flush({
+    http.expectOne('/api/sessions/2/heartbeat').flush({
       id: 2,
       duration: 50,
       actualStartTime: new Date().toISOString(),

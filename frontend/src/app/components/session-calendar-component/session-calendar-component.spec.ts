@@ -42,7 +42,7 @@ describe('Session calendar', () => {
     });
   }
   function requestMonth(year: number, month: number) {
-    const request = http.expectOne((r) => r.url === '/api/session-calendar');
+    const request = http.expectOne((r) => r.url === '/api/sessions/calendar');
     expect(request.request.headers.has('Authorization')).toBe(true);
     expect(request.request.params.get('from')).toBe(new Date(year, month - 1, 1).toISOString());
     expect(request.request.params.get('to')).toBe(new Date(year, month, 1).toISOString());
@@ -52,7 +52,7 @@ describe('Session calendar', () => {
   it('requires authentication', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/sessions/calendar', LoginComponent);
-    http.expectNone('/api/session-calendar');
+    http.expectNone('/api/sessions/calendar');
   });
 
   it('prevents planning on past days while allowing history navigation and future dates', async () => {
@@ -136,7 +136,7 @@ describe('Session calendar', () => {
     harness.routeNativeElement!.querySelector<HTMLAnchorElement>('.detail-link')!.click();
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/sessions/history/11?from=calendar&date=2026-03-15');
-    http.expectOne('/api/session-history/11').flush({
+    http.expectOne('/api/sessions/history/11').flush({
       id: 11,
       status: 'Completed',
       duration: 50,
@@ -173,7 +173,7 @@ describe('Session calendar', () => {
     expect(TestBed.inject(Router).url).toContain('from=calendar');
     plan.form.controls.time.setValue('10:30');
     plan.submit();
-    const request = http.expectOne('/api/session-plans');
+    const request = http.expectOne('/api/sessions');
     expect(request.request.body.plannedStartTime).toBe(new Date(2100, 1, 1, 10, 30).toISOString());
     request.flush({ id: 8, duration: 50, plannedStartTime: request.request.body.plannedStartTime });
     harness.detectChanges();
@@ -205,10 +205,10 @@ describe('Session calendar', () => {
     ]);
     component.start(component.selectedSessions()[0]);
     component.start(component.selectedSessions()[0]);
-    http.expectOne('/api/session-starts/12').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/sessions/12/start').flush(null, { status: 204, statusText: 'No Content' });
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/sessions/12/timer');
-    http.expectOne('/api/session-runs/12/heartbeat').flush({
+    http.expectOne('/api/sessions/12/heartbeat').flush({
       id: 12,
       duration: 25,
       actualStartTime: new Date().toISOString(),

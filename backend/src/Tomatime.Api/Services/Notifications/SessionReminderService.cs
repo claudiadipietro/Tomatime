@@ -1,65 +1,97 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Tomatime.Api.Context;
 using Tomatime.Api.Models;
 
 namespace Tomatime.Api.Services;
 
-public sealed class SessionReminderService(
-    IServiceScopeFactory scopes, IWebPushSender sender, ReminderWakeup wakeup, ILogger<SessionReminderService> logger) : BackgroundService
+public sealed class SessionReminderService : BackgroundService
 {
+    private readonly IServiceScopeFactory _scopes;
+    private readonly IWebPushSender _sender;
+    private readonly ReminderWakeup _wakeup;
+    private readonly ILogger<SessionReminderService> _logger;
+
+    public SessionReminderService(
+        IServiceScopeFactory scopes, IWebPushSender sender, ReminderWakeup wakeup, ILogger<SessionReminderService> logger)
+    {
+        _scopes = scopes;
+        _sender = sender;
+        _wakeup = wakeup;
+        _logger = logger;
+    }
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         do
         {
             try
             {
-                using var scope = scopes.CreateScope();
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var push = scope.ServiceProvider.GetRequiredService<PushSubscriptionService>();
-                if (push.Configured) await SendDueAsync(db, stoppingToken);
+                using IServiceScope scope = _scopes.CreateScope();
+                AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                PushSubscriptionService push = scope.ServiceProvider.GetRequiredService<PushSubscriptionService>();
+                if (push.Configured)
+                {
+                    await SendDueAsync(db, stoppingToken);
+                }
             }
             catch (Exception ex) when (!stoppingToken.IsCancellationRequested)
             {
-                logger.LogError(ex, "Failed to process session reminders.");
+                _logger.LogError(ex, "Failed to process session reminders.");
             }
-            await wakeup.WaitAsync(stoppingToken);
+            await _wakeup.WaitAsync(stoppingToken);
         } while (!stoppingToken.IsCancellationRequested);
     }
 
     public async Task SendDueAsync(AppDbContext db, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
-        var sessions = await db.Sessions.AsNoTracking()
+        DateTime now = DateTime.UtcNow;
+        List<int> sessions = await db.Sessions.AsNoTracking()
             .Where(s => s.Status == SessionStatus.Planned && s.PlannedStartTime > now &&
                 s.PlannedStartTime <= now.AddMinutes(5))
             .OrderBy(s => s.PlannedStartTime).Select(s => s.Id).ToListAsync(cancellationToken);
 
         foreach (var sessionId in sessions)
         {
-            await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
-            var session = await db.Sessions.FromSqlInterpolated(
+            await using IDbContextTransaction tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
+            Session? session = await db.Sessions.FromSqlInterpolated(
                 $"SELECT * FROM \"Sessions\" WHERE \"Id\" = {sessionId} FOR UPDATE SKIP LOCKED")
                 .SingleOrDefaultAsync(cancellationToken);
+
             if (session is null || session.Status != SessionStatus.Planned || session.PlannedStartTime <= DateTime.UtcNow)
+            {
                 continue;
-            var user = await db.Users.FromSqlInterpolated(
+            }
+
+            User? user = await db.Users.FromSqlInterpolated(
                 $"SELECT * FROM \"Users\" WHERE \"Id\" = {session.UserId} FOR UPDATE")
                 .SingleOrDefaultAsync(cancellationToken);
-            if (user is null || !user.NotificationsEnabled) continue;
 
-            var devices = await db.PushDevices.FromSqlInterpolated(
+            if (user is null || !user.NotificationsEnabled)
+            {
+                continue;
+            }
+
+            List<PushDevice> devices = await db.PushDevices.FromSqlInterpolated(
                 $"SELECT * FROM \"PushDevices\" WHERE \"UserId\" = {user.Id} FOR UPDATE")
                 .ToListAsync(cancellationToken);
-            var sent = await db.ReminderDeliveries.Where(d => d.SessionId == sessionId)
+
+            List<int> sent = await db.ReminderDeliveries.Where(d => d.SessionId == sessionId)
                 .Select(d => d.PushDeviceId).ToListAsync(cancellationToken);
+
             foreach (var device in devices.Where(d => !sent.Contains(d.Id)))
             {
-                var ttl = (int)Math.Floor((session.PlannedStartTime - DateTime.UtcNow).TotalSeconds);
-                if (ttl <= 0) break;
-                var title = device.Language == "es" ? "Tu sesión está por comenzar" : "Your session is starting soon";
-                var body = device.Language == "es" ? "Tu sesión de concentración comienza pronto." : "Your focus session starts soon.";
-                var payload = JsonSerializer.Serialize(new
+                int ttl = (int)Math.Floor((session.PlannedStartTime - DateTime.UtcNow).TotalSeconds);
+                if (ttl <= 0)
+                {
+                    break;
+                }
+
+                string title = device.Language == "es" ? "Tu sesión está por comenzar" : "Your session is starting soon";
+                string body = device.Language == "es" ? "Tu sesión de concentración comienza pronto." : "Your focus session starts soon.";
+                string payload = JsonSerializer.Serialize(new
                 {
                     notification = new
                     {
@@ -70,15 +102,21 @@ public sealed class SessionReminderService(
                 });
                 try
                 {
-                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     timeout.CancelAfter(TimeSpan.FromSeconds(10));
-                    var result = await sender.SendAsync(device, payload, ttl, timeout.Token);
-                    if (result == PushDeliveryResult.Expired) db.PushDevices.Remove(device);
-                    else db.ReminderDeliveries.Add(new ReminderDelivery { SessionId = session.Id, PushDeviceId = device.Id, SentAt = DateTime.UtcNow });
+                    PushDeliveryResult result = await _sender.SendAsync(device, payload, ttl, timeout.Token);
+                    if (result == PushDeliveryResult.Expired)
+                    {
+                        db.PushDevices.Remove(device);
+                    }
+                    else
+                    {
+                        db.ReminderDeliveries.Add(new ReminderDelivery { SessionId = session.Id, PushDeviceId = device.Id, SentAt = DateTime.UtcNow });
+                    }
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    logger.LogWarning("Could not send session reminder for session {SessionId}, device {DeviceId}: {ErrorType}.",
+                    _logger.LogWarning("Could not send session reminder for session {SessionId}, device {DeviceId}: {ErrorType}.",
                         session.Id, device.Id, ex.GetType().Name);
                 }
                 await db.SaveChangesAsync(cancellationToken);

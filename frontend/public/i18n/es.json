@@ -192,7 +192,7 @@
     "retryLoad": "Reintentar",
     "active": "Activado",
     "activate": "Activar",
-    "extendBreak": "Añadir 5 minutos por 5 pomos",
+    "extendBreak": "Añadir 5 minutos por {{count}} pomos",
     "insufficient": "No tienes suficientes pomos.",
     "loadError": "No se pudieron cargar las recompensas.",
     "themeLoadError": "No se pudo actualizar tu tema. Comprueba tu conexión.",

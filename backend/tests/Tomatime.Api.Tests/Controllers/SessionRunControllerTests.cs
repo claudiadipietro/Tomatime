@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tomatime.Api.Controllers;
+using Tomatime.Api.DTOs;
+using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
 namespace Tomatime.Api.Tests;
@@ -13,11 +15,11 @@ public class SessionRunControllerTests
     public async Task RequiresAuthenticationAndUsesAuthenticatedUserForTransitions()
     {
         var service = new FakeRuns();
-        var controller = new SessionRunController(service)
+        var controller = new SessionController(null!, null!, null!, null!, null!, service)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        Assert.NotEmpty(typeof(SessionRunController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
+        Assert.NotEmpty(typeof(SessionController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
         Assert.IsType<UnauthorizedResult>(await controller.Heartbeat(9));
         Assert.IsType<UnauthorizedResult>(await controller.Cancel(9));
         Assert.IsType<UnauthorizedResult>(await controller.Complete(9));

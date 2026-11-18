@@ -86,18 +86,18 @@ describe('Main screen navigation', () => {
     await harness.fixture.whenStable();
     component.startPlanned(45);
     component.startPlanned(45);
-    const request = http.expectOne('/api/session-starts/45');
+    const request = http.expectOne('/api/sessions/45/start');
     expect(request.request.method).toBe('POST');
     request.flush(null, { status: 204, statusText: 'No Content' });
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/sessions/45/timer');
-    http.expectOne('/api/session-runs/45/heartbeat').flush({
+    http.expectOne('/api/sessions/45/heartbeat').flush({
       id: 45,
       duration: 50,
       actualStartTime: new Date().toISOString(),
       serverTime: new Date().toISOString(),
     });
-    http.expectNone('/api/session-starts');
+    http.expectNone('/api/sessions');
   });
 
   it('offers active sessions for resumption after signing in', async () => {
@@ -123,7 +123,7 @@ describe('Main screen navigation', () => {
       completedSessions: 0,
     });
     component.startPlanned(45);
-    http.expectOne('/api/session-starts/45').flush('error', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/sessions/45/start').flush('error', { status: 500, statusText: 'Error' });
     await harness.fixture.whenStable();
     expect(component.startError()).toBe(true);
     expect(component.dashboard()?.nextSession?.id).toBe(45);

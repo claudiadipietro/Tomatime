@@ -45,11 +45,14 @@ describe('Session timer', () => {
     dialog.showModal = () => dialog.setAttribute('open', '');
     dialog.close = () => dialog.removeAttribute('open');
     const now = Date.now();
-    http.expectOne('/api/session-runs/12/heartbeat').flush({
+    http.expectOne('/api/sessions/12/heartbeat').flush({
       id: 12,
       duration: 50,
       actualStartTime: new Date(now - elapsedSeconds * 1000).toISOString(),
       serverTime: new Date(now).toISOString(),
+      breakExtensions: [],
+      pomoBalance: 4,
+      extraBreakCost: 7,
     });
     return { harness, component };
   }
@@ -62,9 +65,31 @@ describe('Session timer', () => {
     expect(component.totalSeconds()).toBe(3300);
   });
 
+  it('uses the server catalog price to enable an extra break', async () => {
+    const { harness } = await open(1500);
+    harness.detectChanges();
+    const button = harness.routeNativeElement!.querySelector('button.primary') as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+
+    const hidden = vi.spyOn(document, 'hidden', 'get');
+    try {
+      hidden.mockReturnValue(false);
+      document.dispatchEvent(new Event('visibilitychange'));
+      const now = Date.now();
+      http.expectOne('/api/sessions/12/heartbeat').flush({
+        id: 12, duration: 50, actualStartTime: new Date(now - 1500_000).toISOString(),
+        serverTime: new Date(now).toISOString(), breakExtensions: [], pomoBalance: 4, extraBreakCost: 3,
+      });
+      harness.detectChanges();
+      expect(button.disabled).toBe(false);
+    } finally {
+      hidden.mockRestore();
+    }
+  });
+
   it('completes only after the focus blocks and break and displays the awarded balance', async () => {
     const { harness, component } = await open(3300);
-    const request = http.expectOne('/api/session-runs/12/complete');
+    const request = http.expectOne('/api/sessions/12/complete');
     harness.detectChanges();
     expect(harness.routeNativeElement?.querySelector('.confetti')).toBeNull();
     request.flush({ pomosEarned: 4 });
@@ -82,7 +107,7 @@ describe('Session timer', () => {
     const router = TestBed.inject(Router);
     expect(await router.navigateByUrl('/home')).toBe(true);
     expect(component.state()).toBe('active');
-    http.expectNone('/api/session-runs/12/cancel');
+    http.expectNone('/api/sessions/12/cancel');
     http
       .expectOne('/api/dashboard')
       .flush({ pomoBalance: 0, nextSession: null, focusMinutes: 0, completedSessions: 0, activeSessions: [] });
@@ -93,15 +118,15 @@ describe('Session timer', () => {
     const { harness, component } = await open(10);
     component.confirmCancellation();
     component.decideLeave(false);
-    http.expectNone('/api/session-runs/12/cancel');
+    http.expectNone('/api/sessions/12/cancel');
     component.confirmCancellation();
     component.decideLeave(true);
-    http.expectOne('/api/session-runs/12/cancel').flush('', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/sessions/12/cancel').flush('', { status: 500, statusText: 'Error' });
     expect(component.error()).toBe('timer.cancelError');
     expect(component.state()).toBe('active');
     component.confirmCancellation();
     component.decideLeave(true);
-    http.expectOne('/api/session-runs/12/cancel').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/sessions/12/cancel').flush(null, { status: 204, statusText: 'No Content' });
     expect(component.state()).toBe('ended');
     await harness.fixture.whenStable();
   });
@@ -111,13 +136,13 @@ describe('Session timer', () => {
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/sessions/12/timer', TimerComponent);
     const now = Date.now();
-    http.expectOne('/api/session-runs/12/heartbeat').flush({
+    http.expectOne('/api/sessions/12/heartbeat').flush({
       id: 12, duration: 25, actualStartTime: new Date(now - 180_000).toISOString(),
       serverTime: new Date(now).toISOString(), breakExtensions: [], pomoBalance: 0,
     });
     expect(component.state()).toBe('active');
     expect(component.remaining()).toBe('22:00');
-    http.expectNone('/api/session-runs/12/cancel');
+    http.expectNone('/api/sessions/12/cancel');
   });
 
   it('resynchronizes after the screen is unlocked and completes if time elapsed', async () => {
@@ -127,15 +152,15 @@ describe('Session timer', () => {
       hidden.mockReturnValue(true);
       document.dispatchEvent(new Event('visibilitychange'));
       window.dispatchEvent(new Event('pagehide'));
-      http.expectNone('/api/session-runs/12/cancel');
+      http.expectNone('/api/sessions/12/cancel');
       hidden.mockReturnValue(false);
       document.dispatchEvent(new Event('visibilitychange'));
       const now = Date.now();
-      http.expectOne('/api/session-runs/12/heartbeat').flush({
+      http.expectOne('/api/sessions/12/heartbeat').flush({
         id: 12, duration: 50, actualStartTime: new Date(now - 3300_000).toISOString(),
         serverTime: new Date(now).toISOString(), breakExtensions: [], pomoBalance: 0,
       });
-      http.expectOne('/api/session-runs/12/complete').flush({ pomosEarned: 4 });
+      http.expectOne('/api/sessions/12/complete').flush({ pomosEarned: 4 });
       expect(component.state()).toBe('completed');
     } finally {
       hidden.mockRestore();
@@ -148,12 +173,12 @@ describe('Session timer', () => {
     try {
       hidden.mockReturnValue(false);
       document.dispatchEvent(new Event('visibilitychange'));
-      const stale = http.expectOne('/api/session-runs/12/heartbeat');
+      const stale = http.expectOne('/api/sessions/12/heartbeat');
       hidden.mockReturnValue(true);
       document.dispatchEvent(new Event('visibilitychange'));
       hidden.mockReturnValue(false);
       document.dispatchEvent(new Event('visibilitychange'));
-      const fresh = http.expectOne('/api/session-runs/12/heartbeat');
+      const fresh = http.expectOne('/api/sessions/12/heartbeat');
       const now = Date.now();
       const started = new Date(now - 600_000).toISOString();
       fresh.flush({ id: 12, duration: 50, actualStartTime: started, serverTime: new Date(now).toISOString() });

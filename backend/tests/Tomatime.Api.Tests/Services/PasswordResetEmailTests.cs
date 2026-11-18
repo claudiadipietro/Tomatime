@@ -159,7 +159,11 @@ public class PasswordResetEmailTests
         public bool Fail;
         public Task SendAsync(MailMessage message, string address, string password, CancellationToken cancellationToken)
         {
-            if (Fail) throw new SmtpException("recipient@example.com secret");
+            if (Fail)
+            {
+                throw new SmtpException("recipient@example.com secret");
+            }
+
             From = message.From?.Address;
             To = message.To.Single().Address;
             Username = address;

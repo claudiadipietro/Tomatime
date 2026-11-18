@@ -1,4 +1,7 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Tomatime.Api.DTOs;
 using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
@@ -9,15 +12,20 @@ namespace Tomatime.Api.Controllers;
 public class RewardController : ControllerBase
 {
     private readonly IRewardDatabaseService _rewardService;
-    public RewardController(IRewardDatabaseService rewardService)
+    private readonly IRewardShopService _shop;
+    private readonly IThemeDatabaseService _themes;
+
+    public RewardController(IRewardDatabaseService rewardService, IRewardShopService shop, IThemeDatabaseService themes)
     {
         _rewardService = rewardService;
+        _shop = shop;
+        _themes = themes;
     }
 
-    [HttpGet("{rewardId}")]
+    [HttpGet("{rewardId:int}")]
     public async Task<IActionResult> GetRewardById(int rewardId)
     {
-        var reward = await _rewardService.GetRewardByIdAsync(rewardId);
+        Reward? reward = await _rewardService.GetRewardByIdAsync(rewardId);
         if (reward == null)
         {
             return NotFound();
@@ -29,8 +37,76 @@ public class RewardController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllRewards()
     {
-        var rewards = await _rewardService.GetAllRewardsAsync();
+        List<Reward> rewards = await _rewardService.GetAllRewardsAsync();
         return Ok(rewards);
     }
 
+    [HttpGet("/api/themes")]
+    public async Task<IActionResult> GetThemes() => Ok(await _themes.GetAllThemesAsync());
+
+    [HttpGet("/api/themes/{themeId:int}")]
+    public async Task<IActionResult> GetTheme(int themeId)
+    {
+        Theme? theme = await _themes.GetThemeByIdAsync(themeId);
+        return theme is null ? NotFound() : Ok(theme);
+    }
+
+    [Authorize]
+    [HttpGet("/api/reward-shop")]
+    public async Task<IActionResult> GetShop()
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+        {
+            return Unauthorized();
+        }
+
+        RewardShopState? state = await _shop.GetAsync(userId);
+        return state is null ? Unauthorized() : Ok(state);
+    }
+
+    [Authorize]
+    [HttpPost("{rewardId:int}/redeem")]
+    public Task<IActionResult> Redeem(int rewardId, RewardPurchaseRequest request)
+    {
+        string? kind = rewardId switch
+        {
+            RewardCatalog.Pink => "pink",
+            RewardCatalog.Blue => "blue",
+            RewardCatalog.ExtraBreak => "extra-break",
+            _ => null
+        };
+        return kind is null ? Task.FromResult<IActionResult>(BadRequest(new { message = "Invalid reward action." })) : Purchase(kind, request);
+    }
+
+    [Authorize]
+    [HttpPost("/api/reward-shop/{kind}/purchase")]
+    public async Task<IActionResult> Purchase(string kind, RewardPurchaseRequest request)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+        {
+            return Unauthorized();
+        }
+
+        return Map(await _shop.PurchaseAsync(userId, kind, request.OperationId));
+    }
+
+    [Authorize]
+    [HttpPost("/api/reward-shop/themes/{theme}/activate")]
+    public async Task<IActionResult> ActivateTheme(string theme)
+    {
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
+        {
+            return Unauthorized();
+        }
+
+        return Map(await _shop.ActivateAsync(userId, theme));
+    }
+
+    private IActionResult Map(RewardActionResult result) => result.Status switch
+    {
+        RewardActionStatus.Success when result.State is not null => Ok(result.State),
+        RewardActionStatus.NotFound => Unauthorized(),
+        RewardActionStatus.InsufficientBalance => Conflict(new { message = "Insufficient balance." }),
+        _ => BadRequest(new { message = "Invalid reward action." }),
+    };
 }

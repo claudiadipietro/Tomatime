@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tomatime.Api.Controllers;
+using Tomatime.Api.DTOs;
+using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
 namespace Tomatime.Api.Tests;
@@ -13,11 +15,11 @@ public class ProfileControllerTests
     public async Task UsesOnlyAuthenticatedUserForProfileOperations()
     {
         var service = new FakeProfile();
-        var controller = new ProfileController(service)
+        var controller = new UserController(null!, service, null!)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        Assert.NotEmpty(typeof(ProfileController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
+        Assert.NotEmpty(typeof(UserController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
         Assert.IsType<UnauthorizedResult>(await controller.Get());
         Assert.IsType<UnauthorizedResult>(await controller.UpdateNotifications(new(true)));
         Assert.IsType<UnauthorizedResult>(await controller.ChangePassword(new("old-password", "new-password")));
