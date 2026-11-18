@@ -10,6 +10,38 @@ namespace Tomatime.Api.Tests;
 public class SessionRunIntegrationTests
 {
     [PushDatabaseFact]
+    public async Task RepeatedRewardOperationChargesTheCatalogPriceOnlyOnce()
+    {
+        var connection = Environment.GetEnvironmentVariable("TOMATIME_PUSH_TEST_CONNECTION")!;
+        var parsed = new NpgsqlConnectionStringBuilder(connection);
+        Assert.True(parsed.Host is "localhost" or "127.0.0.1" &&
+                    parsed.Database!.EndsWith("_test", StringComparison.Ordinal));
+        var options = new DbContextOptionsBuilder<AppDbContext>().UseNpgsql(connection).Options;
+        await using var db = new AppDbContext(options);
+        await db.Database.MigrateAsync();
+        var cost = await db.Rewards.Where(reward => reward.Id == RewardCatalog.Pink).Select(reward => reward.Cost).SingleAsync();
+        var user = new User { Name = "Reward test", Email = $"{Guid.NewGuid()}@example.test", PasswordHash = "test", PomoBalance = cost * 2 };
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+        try
+        {
+            var service = new RewardShopService(db);
+            var operationId = Guid.NewGuid();
+            Assert.Equal(RewardActionStatus.Success, (await service.PurchaseAsync(user.Id, "pink", operationId)).Status);
+            db.ChangeTracker.Clear();
+            Assert.Equal(RewardActionStatus.Success, (await service.PurchaseAsync(user.Id, "pink", operationId)).Status);
+            db.ChangeTracker.Clear();
+            Assert.Equal(RewardActionStatus.InvalidOperation, (await service.PurchaseAsync(user.Id, "blue", operationId)).Status);
+            Assert.Equal(cost, await db.Users.Where(item => item.Id == user.Id).Select(item => item.PomoBalance).SingleAsync());
+            Assert.Equal(1, await db.UserRewards.CountAsync(item => item.UserId == user.Id && item.OperationId == operationId));
+        }
+        finally
+        {
+            await db.Users.Where(item => item.Id == user.Id).ExecuteDeleteAsync();
+        }
+    }
+
+    [PushDatabaseFact]
     public async Task ResumesAfterInactivityAndAwardsOnlyOnceWhenCompleted()
     {
         var connection = Environment.GetEnvironmentVariable("TOMATIME_PUSH_TEST_CONNECTION")!;
@@ -36,7 +68,10 @@ public class SessionRunIntegrationTests
             var service = new SessionRunService(db);
 
             Assert.Null(await service.HeartbeatAsync(user.Id + 1, session.Id));
-            Assert.NotNull(await service.HeartbeatAsync(user.Id, session.Id));
+            var active = await service.HeartbeatAsync(user.Id, session.Id);
+            Assert.NotNull(active);
+            var cost = await db.Rewards.Where(reward => reward.Id == RewardCatalog.ExtraBreak).Select(reward => reward.Cost).SingleAsync();
+            Assert.Equal(cost, active.ExtraBreakCost);
             db.ChangeTracker.Clear();
             Assert.Equal(CompletionStatus.Completed, (await service.CompleteAsync(user.Id, session.Id)).Status);
             db.ChangeTracker.Clear();

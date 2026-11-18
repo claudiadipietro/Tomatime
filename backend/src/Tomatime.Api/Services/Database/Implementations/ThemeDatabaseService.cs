@@ -26,7 +26,7 @@ public class ThemeDatabaseService : IThemeDatabaseService
 
     public async Task<Theme?> UpdateThemeAsync(Theme theme)
     {
-        var existingTheme = await _repository.GetByIdAsync(theme.Id);
+        Theme? existingTheme = await _repository.GetByIdAsync(theme.Id);
 
         if (existingTheme is null)
         {
@@ -41,7 +41,7 @@ public class ThemeDatabaseService : IThemeDatabaseService
 
     public async Task<bool> DeleteThemeAsync(int themeId)
     {
-        var theme = await _repository.GetByIdAsync(themeId);
+        Theme? theme = await _repository.GetByIdAsync(themeId);
 
         if (theme is null)
         {

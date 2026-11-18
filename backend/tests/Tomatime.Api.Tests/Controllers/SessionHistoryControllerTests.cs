@@ -14,23 +14,23 @@ public class SessionHistoryControllerTests
     public async Task HistoryRequiresUserAndUsesClaims()
     {
         var service = new FakeHistory();
-        var controller = new SessionHistoryController(service)
+        var controller = new SessionController(null!, null!, service, null!, null!, null!)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        Assert.NotEmpty(typeof(SessionHistoryController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
-        Assert.IsType<UnauthorizedResult>(await controller.Get());
-        Assert.IsType<UnauthorizedResult>(await controller.GetItem(42));
+        Assert.NotEmpty(typeof(SessionController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
+        Assert.IsType<UnauthorizedResult>(await controller.GetHistory());
+        Assert.IsType<UnauthorizedResult>(await controller.GetHistoryItem(42));
         Assert.Null(service.RequestedUser);
         controller.HttpContext.User = new ClaimsPrincipal(
             new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test"));
-        Assert.IsType<List<SessionHistoryItem>>(Assert.IsType<OkObjectResult>(await controller.Get()).Value);
+        Assert.IsType<List<SessionHistoryItem>>(Assert.IsType<OkObjectResult>(await controller.GetHistory()).Value);
         Assert.Equal(7, service.RequestedUser);
-        Assert.IsType<NotFoundResult>(await controller.GetItem(42));
+        Assert.IsType<NotFoundResult>(await controller.GetHistoryItem(42));
         Assert.Equal(7, service.RequestedUser);
         Assert.Equal(42, service.RequestedSession);
         service.Item = new SessionHistoryItem(42, 50, "Completed", DateTime.UtcNow, null, 4);
-        Assert.Equal(service.Item, Assert.IsType<OkObjectResult>(await controller.GetItem(42)).Value);
+        Assert.Equal(service.Item, Assert.IsType<OkObjectResult>(await controller.GetHistoryItem(42)).Value);
     }
 
     private sealed class FakeHistory : ISessionHistoryService

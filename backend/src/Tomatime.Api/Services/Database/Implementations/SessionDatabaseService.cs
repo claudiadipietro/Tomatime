@@ -26,7 +26,7 @@ public class SessionDatabaseService : ISessionDatabaseService
 
     public async Task<Session?> UpdateSessionAsync(Session session)
     {
-        var existingSession = await _repository.GetByIdAsync(session.Id);
+        Session? existingSession = await _repository.GetByIdAsync(session.Id);
         if (existingSession is null)
         {
             return null;
@@ -42,7 +42,7 @@ public class SessionDatabaseService : ISessionDatabaseService
 
     public async Task<bool> DeleteSessionAsync(int sessionId)
     {
-        var session = await _repository.GetByIdAsync(sessionId);
+        Session? session = await _repository.GetByIdAsync(sessionId);
         if (session is null)
         {
             return false;
@@ -55,7 +55,7 @@ public class SessionDatabaseService : ISessionDatabaseService
 
     public async Task<bool> StartPlannedAsync(int userId, int sessionId, DateTime startedAt)
     {
-        var updated = await _repository.Query()
+        int updated = await _repository.Query()
             .Where(session => session.Id == sessionId && session.UserId == userId &&
                               session.Status == SessionStatus.Planned)
             .ExecuteUpdateAsync(setters => setters

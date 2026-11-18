@@ -14,21 +14,21 @@ public class SessionCalendarControllerTests
     public async Task ValidatesRangeAndUsesAuthenticatedUserWithUtcBounds()
     {
         var service = new FakeCalendar();
-        var controller = new SessionCalendarController(service)
+        var controller = new SessionController(null!, service, null!, null!, null!, null!)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        Assert.NotEmpty(typeof(SessionCalendarController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
+        Assert.NotEmpty(typeof(SessionController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
         var from = new DateTimeOffset(2026, 3, 1, 0, 0, 0, TimeSpan.FromHours(1));
         var to = from.AddDays(31);
-        Assert.IsType<UnauthorizedResult>(await controller.Get(from, to));
+        Assert.IsType<UnauthorizedResult>(await controller.GetCalendar(from, to));
         controller.HttpContext.User = new ClaimsPrincipal(
             new ClaimsIdentity([new Claim(ClaimTypes.NameIdentifier, "7")], "test"));
-        Assert.IsType<BadRequestObjectResult>(await controller.Get(null, to));
-        Assert.IsType<BadRequestObjectResult>(await controller.Get(from, from));
-        Assert.IsType<BadRequestObjectResult>(await controller.Get(from, from.AddDays(46)));
+        Assert.IsType<BadRequestObjectResult>(await controller.GetCalendar(null, to));
+        Assert.IsType<BadRequestObjectResult>(await controller.GetCalendar(from, from));
+        Assert.IsType<BadRequestObjectResult>(await controller.GetCalendar(from, from.AddDays(46)));
         Assert.Equal(0, service.Calls);
-        Assert.IsType<OkObjectResult>(await controller.Get(from, to));
+        Assert.IsType<OkObjectResult>(await controller.GetCalendar(from, to));
         Assert.Equal(7, service.UserId);
         Assert.Equal(from.UtcDateTime, service.From);
         Assert.Equal(to.UtcDateTime, service.To);

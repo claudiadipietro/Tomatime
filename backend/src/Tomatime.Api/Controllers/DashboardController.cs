@@ -12,37 +12,37 @@ namespace Tomatime.Api.Controllers;
 [Route("api/dashboard")]
 public sealed class DashboardController : ControllerBase
 {
-    private readonly IUserDatabaseService users;
-    private readonly ISessionDatabaseService sessions;
+    private readonly IUserDatabaseService _users;
+    private readonly ISessionDatabaseService _sessions;
 
     public DashboardController(IUserDatabaseService users, ISessionDatabaseService sessions)
     {
-        this.users = users;
-        this.sessions = sessions;
+        _users = users;
+        _sessions = sessions;
     }
     
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
         {
             return Unauthorized();
         }
 
-        var user = await users.GetUserByIdAsync(userId);
+        User? user = await _users.GetUserByIdAsync(userId);
         if (user is null)
         {
             return Unauthorized();
         }
 
-        var userSessions = await sessions.GetSessionsByUserIdAsync(userId);
-        var next = userSessions
+        List<Session> userSessions = await _sessions.GetSessionsByUserIdAsync(userId);
+        DashboardSession? next = userSessions
             .Where(session => session.Status == SessionStatus.Planned)
             .OrderBy(session => session.PlannedStartTime)
             .Select(session => new DashboardSession(session.Id, session.PlannedStartTime, session.Duration))
             .FirstOrDefault();
-        var completed = userSessions.Where(session => session.Status == SessionStatus.Completed).ToList();
-        var active = userSessions
+        List<Session> completed = userSessions.Where(session => session.Status == SessionStatus.Completed).ToList();
+        List<DashboardActiveSession> active = userSessions
             .Where(session => session.Status == SessionStatus.InProgress && session.ActualStartTime.HasValue)
             .OrderByDescending(session => session.ActualStartTime)
             .ThenByDescending(session => session.Id)

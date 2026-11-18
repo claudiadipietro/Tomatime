@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Tomatime.Api.Controllers;
 using Tomatime.Api.DTOs;
+using Tomatime.Api.Models;
 using Tomatime.Api.Services;
 
 namespace Tomatime.Api.Tests;
@@ -28,11 +29,11 @@ public class SessionStartControllerTests
     public async Task StartingRequiresAUser()
     {
         var service = new FakeSessionStartService();
-        var controller = new SessionStartController(service)
+        var controller = new SessionController(null!, null!, null!, null!, service, null!)
         {
             ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() },
         };
-        Assert.NotEmpty(typeof(SessionStartController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
+        Assert.NotEmpty(typeof(SessionController).GetCustomAttributes(typeof(AuthorizeAttribute), true));
         Assert.IsType<UnauthorizedResult>(await controller.StartSpontaneous(new StartSessionRequest { Duration = 50 }));
         Assert.IsType<UnauthorizedResult>(await controller.StartPlanned(10));
 
@@ -43,7 +44,7 @@ public class SessionStartControllerTests
     public async Task ControllerMapsServiceResultsAndPassesAuthenticatedUser()
     {
         var service = new FakeSessionStartService();
-        var controller = new SessionStartController(service)
+        var controller = new SessionController(null!, null!, null!, null!, service, null!)
         {
             ControllerContext = new ControllerContext
             {

@@ -17,8 +17,19 @@ public class PushSubscriptionTests
     [InlineData("https://127.0.0.1/abc", false)]
     [InlineData("https://fcm.googleapis.com:444/abc", false)]
     [InlineData("https://user@fcm.googleapis.com/abc", false)]
+    [InlineData("https://fcm.googleapis.com/abc#fragment", false)]
+    [InlineData("https://fcm.googleapis.com/á", false)]
+    [InlineData("https://evilpush.apple.com/abc", false)]
+    [InlineData("https://fcm.googleapis.com:443/abc", true)]
     public void AllowsOnlyKnownSecurePushProviders(string endpoint, bool valid) =>
         Assert.Equal(valid, PushSubscriptionService.IsValid(new(endpoint, Key, Auth, "es")));
+
+    [Fact]
+    public void RejectsEndpointsThatExceedTheLengthLimit()
+    {
+        var endpoint = "https://fcm.googleapis.com/" + new string('a', 2049);
+        Assert.False(PushSubscriptionService.IsValid(new(endpoint, Key, Auth, "es")));
+    }
 
     [Fact]
     public void RejectsMalformedKeysAndUnsupportedLanguages()

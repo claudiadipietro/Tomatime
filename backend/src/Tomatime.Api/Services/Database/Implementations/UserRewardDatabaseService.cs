@@ -33,9 +33,11 @@ public class UserRewardDatabaseService : IUserRewardDatabaseService
 
     public async Task<bool> DeleteUserRewardAsync(int userRewardId)
     {
-        var userReward = await _repository.GetByIdAsync(userRewardId);
+        UserReward? userReward = await _repository.GetByIdAsync(userRewardId);
         if (userReward == null)
+        {
             return false;
+        }
 
         _repository.Remove(userReward);
         await _repository.SaveChangesAsync();
