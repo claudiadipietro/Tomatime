@@ -192,7 +192,7 @@
     "retryLoad": "Retry",
     "active": "Active",
     "activate": "Activate",
-    "extendBreak": "Add 5 minutes for 5 pomos",
+    "extendBreak": "Add 5 minutes for {{count}} pomos",
     "insufficient": "You do not have enough pomos.",
     "loadError": "Could not load rewards.",
     "themeLoadError": "Your theme could not be refreshed. Check your connection.",

@@ -8,10 +8,10 @@ export class SessionHistoryService {
   private readonly http = inject(HttpClient);
 
   getHistory(): Observable<SessionHistoryItem[]> {
-    return this.http.get<SessionHistoryItem[]>('/api/session-history');
+    return this.http.get<SessionHistoryItem[]>('/api/sessions/history');
   }
 
   getItem(id: number): Observable<SessionHistoryItem> {
-    return this.http.get<SessionHistoryItem>(`/api/session-history/${id}`);
+    return this.http.get<SessionHistoryItem>(`/api/sessions/history/${id}`);
   }
 }

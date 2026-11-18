@@ -48,7 +48,7 @@ describe('Profile', () => {
   it('requires authentication', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/profile', LoginComponent);
-    http.expectNone('/api/profile');
+    http.expectNone('/api/users/profile');
   });
 
   it('opens from the menu and displays the authenticated profile', async () => {
@@ -60,7 +60,7 @@ describe('Profile', () => {
     harness.detectChanges();
     harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/profile"]')!.click();
     await harness.fixture.whenStable();
-    const request = http.expectOne('/api/profile');
+    const request = http.expectOne('/api/users/profile');
     expect(request.request.headers.has('Authorization')).toBe(true);
     request.flush(profile);
     harness.detectChanges();
@@ -73,17 +73,17 @@ describe('Profile', () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/profile', ProfileComponent);
-    http.expectOne('/api/profile').flush('', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/users/profile').flush('', { status: 500, statusText: 'Error' });
     expect(component.loadError()).toBe(true);
     component.load();
-    http.expectOne('/api/profile').flush(profile);
+    http.expectOne('/api/users/profile').flush(profile);
     const first = component.updateNotifications(false);
-    http.expectOne('/api/profile/notifications').flush('', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/users/notifications').flush('', { status: 500, statusText: 'Error' });
     await first;
     expect(component.profile()?.notificationsEnabled).toBe(true);
     expect(component.notificationError()).toBe('profile.notificationError');
     const second = component.updateNotifications(false);
-    const request = http.expectOne('/api/profile/notifications');
+    const request = http.expectOne('/api/users/notifications');
     expect(request.request.body).toEqual({ enabled: false });
     request.flush(null, { status: 204, statusText: 'No Content' });
     await second;
@@ -94,17 +94,17 @@ describe('Profile', () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/profile', ProfileComponent);
-    http.expectOne('/api/profile').flush(profile);
+    http.expectOne('/api/users/profile').flush(profile);
     component.passwordForm.setValue({ currentPassword: 'wrong-password', newPassword: 'new-password', confirmPassword: 'different' });
     component.changePassword();
     expect(component.passwordError()).toBe('profile.passwordMismatch');
-    http.expectNone('/api/profile/password');
+    http.expectNone('/api/users/password');
     component.passwordForm.controls.confirmPassword.setValue('new-password');
     component.changePassword();
-    http.expectOne('/api/profile/password').flush('', { status: 400, statusText: 'Bad Request' });
+    http.expectOne('/api/users/password').flush('', { status: 400, statusText: 'Bad Request' });
     expect(component.passwordError()).toBe('profile.wrongPassword');
     component.changePassword();
-    http.expectOne('/api/profile/password').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/users/password').flush(null, { status: 204, statusText: 'No Content' });
     expect(component.passwordSuccess()).toBe(true);
     expect(component.passwordForm.value.currentPassword).toBe('');
   });
@@ -113,14 +113,14 @@ describe('Profile', () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/profile', ProfileComponent);
-    http.expectOne('/api/profile').flush({ ...profile, notificationsEnabled: false });
+    http.expectOne('/api/users/profile').flush({ ...profile, notificationsEnabled: false });
     push.subscribe.mockRejectedValueOnce(new DOMException('Denied', 'NotAllowedError'));
     await component.updateNotifications(true);
     expect(component.notificationError()).toBe('profile.pushDenied');
-    http.expectNone('/api/profile/notifications');
+    http.expectNone('/api/users/notifications');
     const result = component.updateNotifications(true);
     await Promise.resolve();
-    http.expectOne('/api/profile/notifications').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/users/notifications').flush(null, { status: 204, statusText: 'No Content' });
     await result;
     expect(component.profile()?.notificationsEnabled).toBe(true);
     expect(component.deviceSubscribed()).toBe(true);
@@ -130,7 +130,7 @@ describe('Profile', () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/profile', ProfileComponent);
-    http.expectOne('/api/profile').flush(profile);
+    http.expectOne('/api/users/profile').flush(profile);
     push.unsubscribe.mockRejectedValueOnce(new Error('offline'));
     await component.logout();
     expect(component.notificationError()).toBe('profile.logoutError');

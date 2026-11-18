@@ -9,6 +9,6 @@ export class SessionCalendarService {
 
   getSessions(from: Date, to: Date): Observable<CalendarSession[]> {
     const params = new HttpParams().set('from', from.toISOString()).set('to', to.toISOString());
-    return this.http.get<CalendarSession[]>('/api/session-calendar', { params });
+    return this.http.get<CalendarSession[]>('/api/sessions/calendar', { params });
   }
 }

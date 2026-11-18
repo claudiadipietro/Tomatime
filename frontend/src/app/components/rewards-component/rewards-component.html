@@ -8,19 +8,21 @@
     <p class="balance">🍅 {{ 'rewards.balance' | translate: { count: data.pomoBalance } }}</p>
     @if (error()) { <p class="error" role="alert">{{ error()! | translate }}</p> }
     <h2>{{ 'rewards.breakTitle' | translate }}</h2>
+    @if (reward('extra-break'); as extraBreak) {
     <article class="break-card">
       <div>
         <h3>⏱️ {{ 'rewards.extraBreak' | translate }}</h3>
         <p>{{ 'rewards.breakDescription' | translate }}</p>
         <p>{{ 'rewards.pending' | translate: { count: data.pendingExtraBreaks } }}</p>
       </div>
-      <button type="button" [disabled]="busy() || (data.pomoBalance < 5 && !pending('extra-break'))" (click)="purchase('extra-break')">
-        {{ (pending('extra-break') ? 'rewards.retryPurchase' : 'rewards.buy') | translate: { count: 5 } }}
+      <button type="button" [disabled]="busy() || (data.pomoBalance < extraBreak.cost && !pending('extra-break'))" (click)="purchase('extra-break')">
+        {{ (pending('extra-break') ? 'rewards.retryPurchase' : 'rewards.buy') | translate: { count: extraBreak.cost } }}
       </button>
     </article>
+    }
     <h2>{{ 'rewards.themes' | translate }}</h2>
     <section class="themes">
-      @for (theme of themes; track theme) {
+      @for (theme of themes(); track theme) {
         <article class="theme-card">
           <div class="theme-preview" [class]="'theme-preview ' + theme" aria-hidden="true">🍅</div>
           <h3>{{ 'rewards.theme.' + theme | translate }}</h3>
@@ -30,9 +32,9 @@
             <button type="button" [disabled]="busy()" (click)="purchase(theme)">{{ 'rewards.retryPurchase' | translate }}</button>
           } @else if (owned(theme)) {
             <button type="button" [disabled]="busy()" (click)="activate(theme)">{{ 'rewards.activate' | translate }}</button>
-          } @else if (theme !== 'default') {
-            <button type="button" [disabled]="busy() || data.pomoBalance < 5" (click)="purchase(theme)">
-              {{ 'rewards.buy' | translate: { count: 5 } }}
+          } @else if (theme !== 'default' && reward(theme); as themeReward) {
+            <button type="button" [disabled]="busy() || data.pomoBalance < themeReward.cost" (click)="purchase(theme)">
+              {{ 'rewards.buy' | translate: { count: themeReward.cost } }}
             </button>
           }
         </article>

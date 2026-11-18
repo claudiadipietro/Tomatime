@@ -45,7 +45,7 @@ describe('Session history', () => {
   it('requires authentication', async () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/sessions/history', LoginComponent);
-    http.expectNone('/api/session-history');
+    http.expectNone('/api/sessions/history');
   });
 
   it('opens history from the menu and links to the profile', async () => {
@@ -64,7 +64,7 @@ describe('Session history', () => {
       .click();
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/sessions/history');
-    const request = http.expectOne('/api/session-history');
+    const request = http.expectOne('/api/sessions/history');
     expect(request.request.headers.has('Authorization')).toBe(true);
     request.flush([]);
     await harness.fixture.whenStable();
@@ -78,7 +78,7 @@ describe('Session history', () => {
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1, 23, 45);
     const sameDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 8);
-    http.expectOne('/api/session-history').flush([
+    http.expectOne('/api/sessions/history').flush([
       {
         id: 2,
         duration: 50,
@@ -117,11 +117,11 @@ describe('Session history', () => {
     signIn();
     const harness = await RouterTestingHarness.create();
     const component = await harness.navigateByUrl('/sessions/history', SessionHistoryComponent);
-    http.expectOne('/api/session-history').flush('', { status: 500, statusText: 'Error' });
+    http.expectOne('/api/sessions/history').flush('', { status: 500, statusText: 'Error' });
     harness.detectChanges();
     expect(harness.routeNativeElement!.querySelector('[role="alert"]')).toBeTruthy();
     component.load();
-    http.expectOne('/api/session-history').flush('', { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/sessions/history').flush('', { status: 401, statusText: 'Unauthorized' });
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/login');
     expect(TestBed.inject(AuthSessionService).accessToken).toBeNull();
