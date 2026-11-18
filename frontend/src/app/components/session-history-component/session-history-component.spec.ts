@@ -43,8 +43,12 @@ describe('Session history', () => {
   }
 
   it('requires authentication', async () => {
+    TestBed.inject(AuthSessionService).clear();
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/sessions/history', LoginComponent);
+    const navigation = harness.navigateByUrl('/sessions/history', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await navigation;
     http.expectNone('/api/sessions/history');
   });
 
@@ -122,6 +126,7 @@ describe('Session history', () => {
     expect(harness.routeNativeElement!.querySelector('[role="alert"]')).toBeTruthy();
     component.load();
     http.expectOne('/api/sessions/history').flush('', { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/login');
     expect(TestBed.inject(AuthSessionService).accessToken).toBeNull();

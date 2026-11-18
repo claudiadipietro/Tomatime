@@ -45,8 +45,12 @@ describe('Plan session', () => {
   }
 
   it('requires authentication', async () => {
+    auth.clear();
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/sessions/plan', LoginComponent);
+    const navigation = harness.navigateByUrl('/sessions/plan', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await navigation;
     expect(TestBed.inject(Router).url).toBe('/login');
     http.expectNone('/api/sessions');
   });

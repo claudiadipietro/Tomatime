@@ -95,6 +95,41 @@ namespace Tomatime.Api.Migrations
                     b.ToTable("PushDevices");
                 });
 
+            modelBuilder.Entity("Tomatime.Api.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "ExpiresAt");
+
+                    b.ToTable("RefreshTokens");
+                });
+
             modelBuilder.Entity("Tomatime.Api.Models.ReminderDelivery", b =>
                 {
                     b.Property<int>("SessionId")
@@ -346,6 +381,15 @@ namespace Tomatime.Api.Migrations
                 });
 
             modelBuilder.Entity("Tomatime.Api.Models.PushDevice", b =>
+                {
+                    b.HasOne("Tomatime.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Tomatime.Api.Models.RefreshToken", b =>
                 {
                     b.HasOne("Tomatime.Api.Models.User", null)
                         .WithMany()

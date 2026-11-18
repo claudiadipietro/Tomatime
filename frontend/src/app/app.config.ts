@@ -12,6 +12,7 @@ import { provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { routes } from './app.routes';
 import { authInterceptor } from './services/auth.interceptor';
+import { AuthService } from './services/auth.service';
 import { LanguageService } from './i18n/language.service';
 
 export const appConfig: ApplicationConfig = {
@@ -28,6 +29,7 @@ export const appConfig: ApplicationConfig = {
       lang: 'en',
     }),
     provideAppInitializer(() => inject(LanguageService).initialize()),
+    provideAppInitializer(() => inject(AuthService).restoreSession()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

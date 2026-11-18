@@ -4,8 +4,10 @@ namespace Tomatime.Api.Services;
 
 public interface IAuthService
 {
-    Task<AuthResponse?> SignupAsync(SignupRequest request);
-    Task<AuthResponse?> LoginAsync(LoginRequest request);
+    Task<AuthSessionTokens?> SignupAsync(SignupRequest request);
+    Task<AuthSessionTokens?> LoginAsync(LoginRequest request);
+    Task<AuthSessionTokens?> RefreshAsync(string? refreshToken);
+    Task RevokeRefreshTokenAsync(string? refreshToken);
     Task RequestPasswordResetAsync(ForgotPasswordRequest request);
     Task<bool> ResetPasswordAsync(ResetPasswordRequest request);
 }

@@ -44,11 +44,18 @@ describe('Main screen navigation', () => {
   }
 
   it('redirects anonymous and expired sessions to login without fetching data', async () => {
+    auth.clear();
     const harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/home', LoginComponent);
+    const anonymousNavigation = harness.navigateByUrl('/home', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await anonymousNavigation;
     expect(TestBed.inject(Router).url).toBe('/login');
     signIn(new Date(Date.now() - 1000).toISOString());
-    await harness.navigateByUrl('/home', LoginComponent);
+    const expiredNavigation = harness.navigateByUrl('/home', LoginComponent);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
+    await expiredNavigation;
     expect(TestBed.inject(Router).url).toBe('/login');
     http.expectNone('/api/dashboard');
   });
@@ -149,6 +156,7 @@ describe('Main screen navigation', () => {
     const harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/home', MainScreenComponent);
     http.expectOne('/api/dashboard').flush('', { status: 401, statusText: 'Unauthorized' });
+    http.expectOne('/api/auth/refresh').flush('', { status: 401, statusText: 'Unauthorized' });
     await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/login');
     expect(auth.accessToken).toBeNull();

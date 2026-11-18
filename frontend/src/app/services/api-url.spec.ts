@@ -49,6 +49,28 @@ describe('API URL configuration', () => {
     request.flush({});
   });
 
+  it('renews an expired access token and retries the protected request', () => {
+    http.get('/api/dashboard').subscribe();
+    requests.expectOne(`${origin}/api/dashboard`).flush('', {
+      status: 401,
+      statusText: 'Unauthorized',
+    });
+
+    const refresh = requests.expectOne(`${origin}/api/auth/refresh`);
+    expect(refresh.request.withCredentials).toBe(true);
+    refresh.flush({
+      userId: 7,
+      name: 'Jane',
+      email: 'jane@example.com',
+      accessToken: 'renewed-token',
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+    });
+
+    const retry = requests.expectOne(`${origin}/api/dashboard`);
+    expect(retry.request.headers.get('Authorization')).toBe('Bearer renewed-token');
+    retry.flush({});
+  });
+
   it('leaves other URLs untouched and does not add a token', () => {
     for (const url of ['/i18n/en.json', 'https://other.example.test/api/dashboard']) {
       http.get(url).subscribe();
