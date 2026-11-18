@@ -5,6 +5,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Tomatime.Api.Context;
 using Tomatime.Api.DTOs;
 using Tomatime.Api.Models;
 
@@ -14,17 +15,22 @@ public sealed class AuthService: IAuthService
 {
     private readonly IUserDatabaseService _userDatabaseService;
     private readonly IRepository<PasswordResetToken> _passwordResetTokenRepository;
+    private readonly IRepository<RefreshToken> _refreshTokenRepository;
+    private readonly AppDbContext _db;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly PasswordResetEmailQueue _passwordResetEmailQueue;
     private readonly IConfiguration _configuration;
     private readonly IHostEnvironment _environment;
     private readonly ILogger<AuthService> _logger;
-    private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(24);
+    private static readonly TimeSpan TokenLifetime = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(30);
     private static readonly TimeSpan PasswordResetTokenLifetime = TimeSpan.FromMinutes(30);
 
     public AuthService(
         IUserDatabaseService userDatabaseService,
         IRepository<PasswordResetToken> passwordResetTokenRepository,
+        IRepository<RefreshToken> refreshTokenRepository,
+        AppDbContext db,
         IPasswordHasher<User> passwordHasher,
         PasswordResetEmailQueue passwordResetEmailQueue,
         IConfiguration configuration,
@@ -33,6 +39,8 @@ public sealed class AuthService: IAuthService
     {
         _userDatabaseService = userDatabaseService;
         _passwordResetTokenRepository = passwordResetTokenRepository;
+        _refreshTokenRepository = refreshTokenRepository;
+        _db = db;
         _passwordHasher = passwordHasher;
         _passwordResetEmailQueue = passwordResetEmailQueue;
         _configuration = configuration;
@@ -41,7 +49,7 @@ public sealed class AuthService: IAuthService
     }
 
 
-    public async Task<AuthResponse?> SignupAsync(SignupRequest request)
+    public async Task<AuthSessionTokens?> SignupAsync(SignupRequest request)
     {
         string email = NormalizeEmail(request.Email);
         User? existingUser = await _userDatabaseService.GetUserByEmailAsync(email);
@@ -60,10 +68,10 @@ public sealed class AuthService: IAuthService
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
 
         User? createdUser = await _userDatabaseService.CreateUserAsync(user);
-        return createdUser is null ? null : CreateAuthResponse(createdUser);
+        return createdUser is null ? null : await CreateAuthSessionAsync(createdUser);
     }
 
-    public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+    public async Task<AuthSessionTokens?> LoginAsync(LoginRequest request)
     {
         string email = NormalizeEmail(request.Email);
         User? user = await _userDatabaseService.GetUserByEmailAsync(email);
@@ -83,7 +91,62 @@ public sealed class AuthService: IAuthService
             return null;
         }
 
-        return CreateAuthResponse(user);
+        return await CreateAuthSessionAsync(user);
+    }
+
+    public async Task<AuthSessionTokens?> RefreshAsync(string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return null;
+        }
+
+        await using var transaction = await _db.Database.BeginTransactionAsync();
+        string tokenHash = HashResetToken(refreshToken);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        RefreshToken? existingToken = await _refreshTokenRepository.Query()
+            .SingleOrDefaultAsync(token =>
+                token.TokenHash == tokenHash &&
+                token.RevokedAt == null &&
+                token.ExpiresAt > now);
+
+        if (existingToken is null)
+        {
+            return null;
+        }
+
+        int revoked = await _db.RefreshTokens
+            .Where(token => token.Id == existingToken.Id && token.RevokedAt == null && token.ExpiresAt > now)
+            .ExecuteUpdateAsync(update => update.SetProperty(token => token.RevokedAt, now));
+
+        if (revoked != 1)
+        {
+            return null;
+        }
+
+        User? user = await _userDatabaseService.GetUserByIdAsync(existingToken.UserId);
+        if (user is null)
+        {
+            return null;
+        }
+
+        AuthSessionTokens newSession = await CreateAuthSessionAsync(user);
+        await transaction.CommitAsync();
+        return newSession;
+    }
+
+    public async Task RevokeRefreshTokenAsync(string? refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return;
+        }
+
+        string tokenHash = HashResetToken(refreshToken);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        await _db.RefreshTokens
+            .Where(token => token.TokenHash == tokenHash && token.RevokedAt == null)
+            .ExecuteUpdateAsync(update => update.SetProperty(token => token.RevokedAt, now));
     }
 
     public async Task RequestPasswordResetAsync(ForgotPasswordRequest request)
@@ -141,6 +204,9 @@ public sealed class AuthService: IAuthService
         resetToken.UsedAt = DateTimeOffset.UtcNow;
 
         await _userDatabaseService.UpdateUserAsync(user);
+        await _db.RefreshTokens
+            .Where(token => token.UserId == user.Id && token.RevokedAt == null)
+            .ExecuteUpdateAsync(update => update.SetProperty(token => token.RevokedAt, DateTimeOffset.UtcNow));
         _passwordResetTokenRepository.Update(resetToken);
         await _passwordResetTokenRepository.SaveChangesAsync();
 
@@ -169,6 +235,24 @@ public sealed class AuthService: IAuthService
             user.Email,
             new JwtSecurityTokenHandler().WriteToken(token),
             expiresAt);
+    }
+
+    private async Task<AuthSessionTokens> CreateAuthSessionAsync(User user)
+    {
+        string refreshToken = CreateRawResetToken();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset refreshTokenExpiresAt = now.Add(RefreshTokenLifetime);
+
+        await _refreshTokenRepository.AddAsync(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = HashResetToken(refreshToken),
+            CreatedAt = now,
+            ExpiresAt = refreshTokenExpiresAt,
+        });
+        await _refreshTokenRepository.SaveChangesAsync();
+
+        return new AuthSessionTokens(CreateAuthResponse(user), refreshToken, refreshTokenExpiresAt);
     }
 
     private SymmetricSecurityKey GetSigningKey()
