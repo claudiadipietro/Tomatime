@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Tomatime.Api.Context;
 using Tomatime.Api.DTOs;
 using Tomatime.Api.Models;
 using Tomatime.Api.Services;
@@ -151,7 +153,12 @@ public class PasswordResetEmailTests
 
     private static AuthService CreateService(FakeUsers users, FakeTokens tokens, PasswordResetEmailQueue queue,
         IConfiguration config, string environment, FakeLogger logger) =>
-        new(users, tokens, new PasswordHasher<User>(), queue, config, new FakeEnvironment { EnvironmentName = environment }, logger);
+        new(users, tokens, new FakeRefreshTokens(),
+            new AppDbContext(new DbContextOptionsBuilder<AppDbContext>()
+                .UseNpgsql("Host=localhost;Database=unused;Username=unused;Password=unused")
+                .Options),
+            new PasswordHasher<User>(), queue, config,
+            new FakeEnvironment { EnvironmentName = environment }, logger);
 
     private sealed class FakeTransport : IGmailTransport
     {
@@ -238,5 +245,15 @@ public class PasswordResetEmailTests
             Message = formatter(state, exception);
             Logged.TrySetResult();
         }
+    }
+
+    private sealed class FakeRefreshTokens : IRepository<RefreshToken>
+    {
+        public IQueryable<RefreshToken> Query() => Array.Empty<RefreshToken>().AsQueryable();
+        public Task<RefreshToken?> GetByIdAsync(object id, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+        public Task AddAsync(RefreshToken entity, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public void Update(RefreshToken entity) => throw new NotImplementedException();
+        public void Remove(RefreshToken entity) => throw new NotImplementedException();
+        public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => Task.FromResult(1);
     }
 }
