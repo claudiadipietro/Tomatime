@@ -11,6 +11,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 	public DbSet<Session> Sessions => Set<Session>();
 	public DbSet<UserReward> UserRewards => Set<UserReward>();
 	public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+	public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 	public DbSet<PushDevice> PushDevices => Set<PushDevice>();
 	public DbSet<ReminderDelivery> ReminderDeliveries => Set<ReminderDelivery>();
 
@@ -87,6 +88,18 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 			entity.HasIndex(token => token.TokenHash).IsUnique();
 			entity.Property(token => token.TokenHash).HasMaxLength(128).IsRequired();
 
+			entity.HasOne<User>()
+				.WithMany()
+				.HasForeignKey(token => token.UserId)
+				.OnDelete(DeleteBehavior.Cascade);
+		});
+
+		modelBuilder.Entity<RefreshToken>(entity =>
+		{
+			entity.HasKey(token => token.Id);
+			entity.HasIndex(token => token.TokenHash).IsUnique();
+			entity.HasIndex(token => new { token.UserId, token.ExpiresAt });
+			entity.Property(token => token.TokenHash).HasMaxLength(64).IsRequired();
 			entity.HasOne<User>()
 				.WithMany()
 				.HasForeignKey(token => token.UserId)
