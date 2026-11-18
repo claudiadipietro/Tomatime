@@ -17,12 +17,18 @@ on:
         description: 'Optional full commit SHA to build and deploy'
         required: false
         type: string
+      verify_azure:
+        description: 'Only verify Azure login and API access; do not deploy'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   build:
+    if: github.event_name != 'workflow_dispatch' || !inputs.verify_azure
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -72,8 +78,24 @@ jobs:
           path: publish/
           if-no-files-found: error
 
+  verify-azure:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.verify_azure
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify access to the API
+        run: az webapp show --resource-group tomatime-rg --name tomatime-api --query state --output tsv
+
   deploy:
-    if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOY_ENABLED == 'true'
+    if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOY_ENABLED == 'true' && !inputs.verify_azure
     needs: build
     runs-on: ubuntu-latest
     permissions:
