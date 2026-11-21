@@ -39,11 +39,16 @@
                         : 'history.duration'
                       ) | translate: { count: session.duration }
                     }}</strong>
-                    @if (session.actualStartTime; as start) {
+                    @if (session.actualStartTime ?? session.plannedStartTime; as start) {
                       <span>
+                        @if (!session.actualStartTime) {
+                          {{ 'history.plannedStart' | translate }}:
+                        }
                         {{ formatTime(start) }}
-                        @if (session.endedAt; as end) {
-                          – {{ formatTime(end) }}
+                        @if (session.actualStartTime) {
+                          @if (session.endedAt; as end) {
+                            – {{ formatTime(end) }}
+                          }
                         }
                       </span>
                     }

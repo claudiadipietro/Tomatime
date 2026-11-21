@@ -204,4 +204,23 @@ export class SessionCalendarComponent {
         },
       });
   }
+
+  cancelPlanned(sessionId: number): void {
+    this.sessionsService
+      .cancel(sessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.load();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 401) {
+            this.auth.clear();
+            void this.router.navigate(['/login']);
+          } else if (error.status === 404) {
+            this.load();
+          }
+        },
+      });
+  }
 }

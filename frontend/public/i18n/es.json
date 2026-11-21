@@ -39,7 +39,8 @@
     "summary": "Tu resumen",
     "availablePomos": "pomos disponibles",
     "focusTime": "tiempo de concentración",
-    "completedSessions": "sesiones completadas"
+    "completedSessions": "sesiones completadas",
+    "cancelPlanned": "Cancelar sesión planificada"
   },
   "profile": {
     "title": "Mi perfil",
@@ -84,6 +85,8 @@
     "empty": "Todavía no tienes sesiones completadas o canceladas.",
     "today": "Hoy",
     "unknownDate": "Fecha de inicio no disponible",
+    "plannedStart": "Inicio previsto",
+    "cancelledAt": "Cancelada el",
     "duration": "{{count}} min de concentración",
     "plannedDuration": "{{count}} min de concentración previstos",
     "completed": "Completada",
@@ -122,6 +125,7 @@
     "breakBlock": "5 min de descanso",
     "startError": "No se ha podido iniciar la sesión. Inténtalo de nuevo.",
     "startPlanned": "Iniciar sesión planificada",
+    "cancelPlanned": "Cancelar sesión planificada",
     "start": "Comenzar sesión",
     "starting": "Iniciando…"
   },

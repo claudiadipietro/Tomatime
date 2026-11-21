@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { RewardShopState } from './reward-shop.service';
@@ -45,12 +45,8 @@ export class SessionService {
     return this.http.post<ActiveSession>(`/api/sessions/${id}/heartbeat`, {});
   }
 
-  cancel(id: number, token: string): Observable<void> {
-    return this.http.post<void>(
-      `/api/sessions/${id}/cancel`,
-      {},
-      { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) },
-    );
+  cancel(id: number): Observable<void> {
+    return this.http.post<void>(`/api/sessions/${id}/cancel`, {});
   }
 
   complete(id: number): Observable<{ pomosEarned: number }> {

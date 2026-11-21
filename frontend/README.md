@@ -40,7 +40,7 @@ After login or registration, `/home` shows the authenticated dashboard. Its data
 
 The legacy `/api/users/profile/{userId}`, `/api/users/{userId}/rewards`, `/api/users/notifications/{userId}` and `/api/sessions` endpoints require authentication and only allow access to the signed-in user's data. The profile response does not include a password hash. The unused user-by-email and user deletion endpoints, and theme creation, modification and deletion endpoints, are no longer exposed; the application does not implement administrator or account-deletion flows.
 
-The frontend uses `/api/users` for profile, notifications, password and theme; `/api/sessions` for session operations, calendar and history; and `/api/rewards` for the reward catalog and redemption. The shop reads reward IDs and prices from the catalog. The previous `/api/profile`, `/api/reward-shop`, `/api/session-starts`, `/api/session-plans`, `/api/session-runs`, `/api/session-history` and `/api/session-calendar` routes remain temporary compatibility aliases. Deploy the backend before the frontend, then remove the aliases only after deployed and installed clients have updated.
+The frontend uses `/api/users` for profile, notifications, password and theme; `/api/sessions` for session operations, calendar and history; and `/api/rewards` for the reward catalog and redemption. The shop reads reward IDs and prices from the catalog. The previous `/api/profile`, `/api/reward-shop`, `/api/session-starts`, `/api/session-plans`, `/api/session-runs`, `/api/session-history` and `/api/session-calendar` compatibility routes have been removed.
 
 Extra breaks bought in the shop are applied at the first break of a later eligible session. A session without breaks, or one cancelled before its first break, leaves the purchase pending. Extra breaks can also be bought during a break and are applied immediately.
 
@@ -76,6 +76,8 @@ Never commit the app password or share it in chat. User secrets are local develo
 The calendar shows sessions by local start date. Planned sessions use their planned start; other sessions use their actual start, or the planned time when the actual start is unavailable. Select a day to see its sessions, open past session details, start planned sessions, or plan a new session with the selected date prefilled.
 
 The menu links to the authenticated session history, showing completed and cancelled sessions grouped by local start date. Each entry opens its detail page. Cancelled durations are planned focus time, not necessarily time spent. The end time is shown when recorded; older sessions and sessions cancelled after lost activity may not have one.
+
+Sessions cancelled before starting are grouped by their original planned start date and display a planned-start label. Their actual start remains null; the detail shows the cancellation timestamp separately when available.
 
 The menu also links to the profile, where users can see their balance and active theme, manage notifications, and change their password by providing the current one.
 

@@ -51,6 +51,11 @@
         >
           {{ 'session.startPlanned' | translate }}
         </button>
+        <button type="button" 
+        [disabled]="!data.nextSession || starting()"
+        (click)="cancelPlanned(data.nextSession?.id)">
+          {{ 'session.cancelPlanned' | translate }}
+        </button>
       </section>
       <section class="card">
         <h2><span aria-hidden="true">📅</span> {{ 'dashboard.planSession' | translate }}</h2>

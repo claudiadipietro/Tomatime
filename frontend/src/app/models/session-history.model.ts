@@ -3,6 +3,7 @@ export interface SessionHistoryItem {
   duration: number;
   status: 'Completed' | 'Cancelled';
   actualStartTime: string | null;
+  plannedStartTime?: string;
   endedAt: string | null;
   pomosEarned: number;
 }

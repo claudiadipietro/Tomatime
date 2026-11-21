@@ -34,11 +34,11 @@
       </p>
       <p>
         <span aria-hidden="true">🗓️</span>
-        {{
-          item.actualStartTime
-            ? formatDate(item.actualStartTime)
-            : ('history.unknownDate' | translate)
-        }}
+        @if (item.actualStartTime ?? item.plannedStartTime; as date) {
+          {{ formatDate(date) }}
+        } @else {
+          {{ 'history.unknownDate' | translate }}
+        }
       </p>
       <p>
         <span aria-hidden="true">🕰️</span>
@@ -53,10 +53,15 @@
           } @else {
             · {{ 'sessionDetail.endUnknown' | translate }}
           }
+        } @else if (item.plannedStartTime; as planned) {
+          {{ 'history.plannedStart' | translate }}: {{ formatTime(planned) }}
         } @else {
           {{ 'sessionDetail.timeUnknown' | translate }}
         }
       </p>
+      @if (!item.actualStartTime && item.endedAt; as end) {
+        <p>{{ 'history.cancelledAt' | translate }}: {{ formatDate(end) }}, {{ formatTime(end) }}</p>
+      }
       <p>
         <span aria-hidden="true">🍅</span>
         {{ 'history.pomos' | translate: { count: item.pomosEarned } }}

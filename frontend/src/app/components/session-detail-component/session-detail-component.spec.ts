@@ -113,6 +113,25 @@ describe('Session details', () => {
     expect(text).toContain('sessionDetail.timeUnknown');
   });
 
+  it('shows the planned date and separate cancellation date for an unstarted session', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl('/sessions/history/13', SessionDetailComponent);
+    const planned = new Date(2026, 10, 22, 16).toISOString();
+    const cancelled = new Date(2026, 10, 21, 14).toISOString();
+    http.expectOne('/api/sessions/history/13').flush({
+      id: 13, status: 'Cancelled', duration: 50, actualStartTime: null,
+      plannedStartTime: planned, endedAt: cancelled, pomosEarned: 0,
+    });
+    harness.detectChanges();
+    const text = harness.routeNativeElement!.textContent!;
+    expect(text).toContain(component.formatDate(planned));
+    expect(text).toContain('history.plannedStart');
+    expect(text).toContain('history.cancelledAt');
+    expect(text).toContain(component.formatDate(cancelled));
+    expect(text).not.toContain('sessionDetail.timeUnknown');
+  });
+
   it('displays an unavailable end time and dates spanning midnight', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();
