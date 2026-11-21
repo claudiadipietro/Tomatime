@@ -24,7 +24,6 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("profile")]
-    [HttpGet("/api/profile")]
     public async Task<IActionResult> Get()
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -37,7 +36,6 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("notifications")]
-    [HttpPut("/api/profile/notifications")]
     public async Task<IActionResult> UpdateNotifications(NotificationPreferenceRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -66,7 +64,6 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("password")]
-    [HttpPost("/api/profile/password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
