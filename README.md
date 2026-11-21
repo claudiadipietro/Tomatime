@@ -34,6 +34,19 @@ No es necesario instalar Node.js, .NET ni PostgreSQL en el ordenador para ejecut
 
 ### Inicio y parada
 
+La primera vez que se inicie la aplicación, se debe ejecutar el siguiente comando en la raíz del proyecto:
+
+```bash
+docker compose up --build -d
+```
+
+Se debe abrir **http://localhost:8080** en el mismo ordenador. El primer arranque puede tardar varios minutos; la API aplica las migraciones a la base de datos de Docker al arrancar. Para ver el estado y los registros:
+
+```bash
+docker compose ps
+docker compose logs -f api
+```
+
 Para iniciar la aplicación en modo test, con avance del tiempo en la sesión de concentración (sin tener que esperar a que transcurra el tiempo), se deben ejecutar los siguientes comandos en la raíz del proyecto:
 
 ```bash
@@ -50,14 +63,7 @@ docker compose up -d --no-build
 
 > **Nota:** Si se recompila el proyecto con otra configuración, se debe recargar la página con `Ctrl + F5`.
 
-Se debe abrir **http://localhost:8080** en el mismo ordenador. El primer arranque puede tardar varios minutos; la API aplica las migraciones a la base de datos de Docker al arrancar. Para ver el estado y los registros:
-
-```bash
-docker compose ps
-docker compose logs -f api
-```
-
-Se debe pulsar `Ctrl+C` para dejar de ver los registros. Para detener la aplicación sin borrar los datos:
+En la consola, se debe pulsar `Ctrl+C` para dejar de ver los registros. Para detener la aplicación sin borrar los datos:
 
 ```bash
 docker compose down
