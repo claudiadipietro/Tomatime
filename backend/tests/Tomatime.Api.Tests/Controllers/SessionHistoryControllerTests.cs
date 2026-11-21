@@ -29,7 +29,7 @@ public class SessionHistoryControllerTests
         Assert.IsType<NotFoundResult>(await controller.GetHistoryItem(42));
         Assert.Equal(7, service.RequestedUser);
         Assert.Equal(42, service.RequestedSession);
-        service.Item = new SessionHistoryItem(42, 50, "Completed", DateTime.UtcNow, null, 4);
+        service.Item = new SessionHistoryItem(42, 50, "Completed", DateTime.UtcNow, null, 4, DateTime.UtcNow);
         Assert.Equal(service.Item, Assert.IsType<OkObjectResult>(await controller.GetHistoryItem(42)).Value);
     }
 

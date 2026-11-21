@@ -65,6 +65,20 @@ public class LegacyEndpointSecurityTests
         var swagger = app.Services.GetRequiredService<ISwaggerProvider>().GetSwagger("v1");
         Assert.Contains("/api/sessions", swagger.Paths.Keys);
         Assert.Contains("/api/rewards/{rewardId}/redeem", swagger.Paths.Keys);
+        foreach (var route in new[]
+        {
+            "/api/users/profile", "/api/users/notifications", "/api/users/password",
+            "/api/sessions/calendar", "/api/sessions/history", "/api/sessions/history/{sessionId}",
+            "/api/sessions/{sessionId}/start", "/api/sessions/{sessionId}/heartbeat",
+            "/api/sessions/{sessionId}/cancel", "/api/sessions/{sessionId}/complete",
+            "/api/sessions/{sessionId}/extra-break",
+        })
+        {
+            Assert.Contains(route, swagger.Paths.Keys);
+        }
+        Assert.DoesNotContain(swagger.Paths.Keys, path =>
+            path.StartsWith("/api/profile") || path.StartsWith("/api/session-") ||
+            path.StartsWith("/api/reward-shop"));
         await app.StartAsync();
         var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         using var client = new HttpClient { BaseAddress = new Uri(address) };
@@ -78,7 +92,7 @@ public class LegacyEndpointSecurityTests
             (await client.PutAsJsonAsync("/api/users/notifications/7", true)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized,
             (await client.PostAsJsonAsync("/api/rewards/-1/redeem", new { operationId = Guid.NewGuid() })).StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized,
+        Assert.Equal(HttpStatusCode.NotFound,
             (await client.PostAsJsonAsync("/api/reward-shop/pink/purchase", new { operationId = Guid.NewGuid() })).StatusCode);
         var catalog = await client.GetFromJsonAsync<List<Reward>>("/api/rewards");
         Assert.Equal(5, Assert.Single(catalog!).Cost);
@@ -102,28 +116,29 @@ public class LegacyEndpointSecurityTests
         Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync("/api/users/notifications/7", true)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/profile")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/notifications")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/profile")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/profile")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync("/api/profile/notifications", new { enabled = true })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/profile/password", new { currentPassword = "old", newPassword = "new" })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/users/rewards")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/reward-shop")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/reward-shop")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/sessions/history")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/session-history")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/session-history")).StatusCode);
         var operationId = Guid.NewGuid();
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/rewards/-1/redeem", new { operationId })).StatusCode);
         var features = app.Services.GetRequiredService<FakeFeatures>();
         Assert.Equal("pink", features.LastKind);
         Assert.Equal(operationId, features.LastOperationId);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/reward-shop/pink/purchase", new { operationId })).StatusCode);
-        Assert.Equal("pink", features.LastKind);
-        Assert.Equal(operationId, features.LastOperationId);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/reward-shop/pink/purchase", new { operationId })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/reward-shop/themes/pink/activate", new { })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/rewards/999/redeem", new { operationId = Guid.NewGuid() })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.PutAsJsonAsync("/api/users/theme", new { theme = "pink" })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/sessions", new { duration = 50 })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/sessions", new { duration = 50, plannedStartTime = DateTimeOffset.UtcNow.AddDays(1) })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/session-starts", new { duration = 50 })).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/session-plans", new { duration = 50, plannedStartTime = DateTimeOffset.UtcNow.AddDays(1) })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/session-starts", new { duration = 50 })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/session-plans", new { duration = 50, plannedStartTime = DateTimeOffset.UtcNow.AddDays(1) })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync("/api/sessions", new { duration = 24 })).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/sessions/1/start", new { })).StatusCode);
-        Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsJsonAsync("/api/session-starts/1", new { })).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync("/api/session-starts/1", new { })).StatusCode);
 
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/sessions/1")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/sessions/2")).StatusCode);

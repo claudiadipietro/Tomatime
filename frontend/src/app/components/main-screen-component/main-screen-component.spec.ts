@@ -70,7 +70,7 @@ describe('Main screen navigation', () => {
     await harness.fixture.whenStable();
     expect(component.dashboard()?.pomoBalance).toBe(24);
     expect(harness.routeNativeElement?.textContent).toContain('24');
-    expect(harness.routeNativeElement?.querySelectorAll('button:disabled').length).toBe(1);
+    expect(harness.routeNativeElement?.querySelectorAll('button:disabled').length).toBe(2);
     expect(harness.routeNativeElement?.querySelector('a[href="/sessions/new"]')).toBeTruthy();
     expect(harness.routeNativeElement?.querySelector('a[href="/sessions/plan"]')).toBeTruthy();
     component.logout();

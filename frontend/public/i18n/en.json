@@ -39,7 +39,8 @@
     "summary": "Your summary",
     "availablePomos": "pomos available",
     "focusTime": "focus time",
-    "completedSessions": "completed sessions"
+    "completedSessions": "completed sessions",
+    "cancelPlanned": "Cancel planned session"
   },
   "profile": {
     "title": "My profile",
@@ -84,6 +85,8 @@
     "empty": "You have no completed or cancelled sessions yet.",
     "today": "Today",
     "unknownDate": "Start date unavailable",
+    "plannedStart": "Planned start",
+    "cancelledAt": "Cancelled on",
     "duration": "{{count}} min of focus",
     "plannedDuration": "{{count}} min of planned focus",
     "completed": "Completed",
@@ -122,6 +125,7 @@
     "breakBlock": "5 min break",
     "startError": "The session could not be started. Please try again.",
     "startPlanned": "Start planned session",
+    "cancelPlanned": "Cancel planned session",
     "start": "Start session",
     "starting": "Starting…"
   },

@@ -92,6 +92,14 @@
                 >
                   {{ 'session.startPlanned' | translate }}
                 </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  [disabled]="starting() !== null"
+                  (click)="cancelPlanned(session.id)"
+                >
+                  {{ 'session.cancelPlanned' | translate }}
+                </button>
               } @else if (session.status === 'Completed' || session.status === 'Cancelled') {
                 <p>{{ 'history.pomos' | translate: { count: session.pomosEarned } }}</p>
                 <a

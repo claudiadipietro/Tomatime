@@ -117,6 +117,25 @@ describe('Session history', () => {
     expect(harness.routeNativeElement!.textContent).toContain('history.unknownDate');
   });
 
+  it('groups unstarted cancellations by planned date without showing a false time range', async () => {
+    signIn();
+    const harness = await RouterTestingHarness.create();
+    const component = await harness.navigateByUrl('/sessions/history', SessionHistoryComponent);
+    const planned = new Date(2026, 10, 22, 16);
+    const cancelled = new Date(2026, 10, 21, 14);
+    http.expectOne('/api/sessions/history').flush([{
+      id: 4, duration: 50, status: 'Cancelled', actualStartTime: null,
+      plannedStartTime: planned.toISOString(), endedAt: cancelled.toISOString(), pomosEarned: 0,
+    }]);
+    harness.detectChanges();
+    expect(component.groups()[0].date).toEqual(planned);
+    const text = harness.routeNativeElement!.querySelector('.session-card')!.textContent!;
+    expect(text).toContain('history.plannedStart');
+    expect(text).toContain(component.formatTime(planned.toISOString()));
+    expect(text).not.toContain('history.unknownDate');
+    expect(text).not.toContain('–');
+  });
+
   it('offers retry on failure and redirects on expired authentication', async () => {
     signIn();
     const harness = await RouterTestingHarness.create();

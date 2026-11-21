@@ -33,7 +33,8 @@ export class SessionHistoryComponent {
   readonly groups = computed(() => {
     const groups = new Map<string, HistoryGroup>();
     for (const session of this.sessions()) {
-      const date = session.actualStartTime ? new Date(session.actualStartTime) : null;
+      const start = session.actualStartTime ?? session.plannedStartTime;
+      const date = start ? new Date(start) : null;
       const key = date ? `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}` : 'unknown';
       if (!groups.has(key)) groups.set(key, { key, date, sessions: [] });
       groups.get(key)!.sessions.push(session);

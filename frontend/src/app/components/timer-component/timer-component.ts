@@ -214,7 +214,7 @@ export class TimerComponent {
     this.leaving = true;
     this.cancellationPending.set(true);
     this.sessions
-      .cancel(this.id, this.token)
+      .cancel(this.id)
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => {

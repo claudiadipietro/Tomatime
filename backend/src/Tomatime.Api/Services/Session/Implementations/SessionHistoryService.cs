@@ -21,11 +21,11 @@ public sealed class SessionHistoryService : ISessionHistoryService
                 (s.Status == SessionStatus.Completed || s.Status == SessionStatus.Cancelled))
             .Select(s => new
             {
-                s.Id, s.Duration, s.Status, s.ActualStartTime, s.EndedAt, s.PomosEarned,
+                s.Id, s.Duration, s.Status, s.ActualStartTime, s.EndedAt, s.PomosEarned, s.PlannedStartTime,
             }).SingleOrDefaultAsync();
         return session is null ? null : new SessionHistoryItem(
             session.Id, session.Duration, session.Status.ToString(),
-            session.ActualStartTime, session.EndedAt, session.PomosEarned);
+            session.ActualStartTime, session.EndedAt, session.PomosEarned, session.PlannedStartTime);
     }
 
     public async Task<List<SessionHistoryItem>> GetHistoryAsync(int userId)
@@ -37,11 +37,11 @@ public sealed class SessionHistoryService : ISessionHistoryService
             .ThenByDescending(s => s.Id)
             .Select(s => new
             {
-                s.Id, s.Duration, s.Status, s.ActualStartTime, s.EndedAt, s.PomosEarned,
+                s.Id, s.Duration, s.Status, s.ActualStartTime, s.EndedAt, s.PomosEarned, s.PlannedStartTime,
             })
             .ToListAsync();
         return sessions.Select(s => new SessionHistoryItem(
             s.Id, s.Duration, s.Status.ToString(), s.ActualStartTime, s.EndedAt,
-            s.PomosEarned)).ToList();
+            s.PomosEarned, s.PlannedStartTime)).ToList();
     }
 }

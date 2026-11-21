@@ -6,9 +6,10 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LanguageService } from '../../i18n/language.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { Dashboard } from '../../models/dashboard.model';
-import { AuthSessionService } from '../../services/auth-session.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { AuthSessionService } from '../../services/auth-session.service';
 import { SessionService } from '../../services/session.service';
+import { pipe } from 'rxjs/internal/util/pipe';
 
 @Component({
   imports: [RouterLink, TranslatePipe, MainHeaderComponent],
@@ -17,9 +18,9 @@ import { SessionService } from '../../services/session.service';
   styleUrl: './main-screen-component.css',
 })
 export class MainScreenComponent {
-  readonly session = inject(AuthSessionService);
   private readonly dashboardService = inject(DashboardService);
   private readonly sessionService = inject(SessionService);
+  private readonly session = inject(AuthSessionService);
   private readonly language = inject(LanguageService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -102,5 +103,20 @@ export class MainScreenComponent {
   logout(): void {
     this.session.clear();
     void this.router.navigate(['/login']);
+  }
+
+  cancelPlanned(sessionId: number | undefined): void {
+    if (sessionId === undefined) return;
+    this.sessionService
+      .cancel(sessionId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loadDashboard();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 401) this.logout();
+        },
+      });
   }
 }
