@@ -9,10 +9,12 @@ namespace Tomatime.Api.Services;
 public sealed class SessionRunService : ISessionRunService
 {
     private readonly AppDbContext _db;
+    private readonly SessionTestClock _clock;
 
-    public SessionRunService(AppDbContext db)
+    public SessionRunService(AppDbContext db, SessionTestClock? clock = null)
     {
         _db = db;
+        _clock = clock ?? new SessionTestClock(false);
     }
 
     public async Task<ActiveSession?> HeartbeatAsync(int userId, int sessionId)
@@ -25,11 +27,11 @@ public sealed class SessionRunService : ISessionRunService
         }
 
         User user = await _db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleAsync();
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _clock.UtcNow(sessionId);
         await ApplyStoredBreakAsync(session, userId, now);
         int extraBreakCost = await _db.Rewards.Where(reward => reward.Id == RewardCatalog.ExtraBreak)
             .Select(reward => reward.Cost).SingleAsync();
-        session.LastActivityAt = now;
+        session.LastActivityAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         await tx.CommitAsync();
         return new ActiveSession(session.Id, session.Duration, session.ActualStartTime.Value, now, session.BreakExtensions, user.PomoBalance, extraBreakCost);
@@ -50,7 +52,7 @@ public sealed class SessionRunService : ISessionRunService
         }
 
         User user = await _db.Users.FromSqlInterpolated($"SELECT * FROM \"Users\" WHERE \"Id\" = {userId} FOR UPDATE").SingleAsync();
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _clock.UtcNow(sessionId);
         UserReward? previous = await _db.UserRewards.AsNoTracking().SingleOrDefaultAsync(o => o.OperationId == operationId);
         async Task<RewardShopState> state() => await RewardShopService.StateAsync(_db, user);
         if (previous is not null)
@@ -64,9 +66,12 @@ public sealed class SessionRunService : ISessionRunService
             return new(RewardActionStatus.NotFound);
         }
 
+        await ApplyStoredBreakAsync(session, userId, now);
         (int BreakIndex, bool InBreak) phase = BreakSchedule.At(session.Duration, session.BreakExtensions, now - session.ActualStartTime.Value);
-        if (!phase.InBreak)
+        if (!phase.InBreak || session.BreakExtensions.ElementAtOrDefault(phase.BreakIndex) > 0)
         {
+            await _db.SaveChangesAsync();
+            await tx.CommitAsync();
             return new(RewardActionStatus.InvalidOperation);
         }
 
@@ -85,7 +90,7 @@ public sealed class SessionRunService : ISessionRunService
         extensions[phase.BreakIndex]++;
         session.BreakExtensions = extensions;
         user.PomoBalance -= reward.Cost;
-        _db.UserRewards.Add(new UserReward { OperationId = operationId, UserId = userId, RewardId = reward.Id, Kind = "extend-break", SessionId = sessionId, CreatedAt = now });
+        _db.UserRewards.Add(new UserReward { OperationId = operationId, UserId = userId, RewardId = reward.Id, Kind = "extend-break", SessionId = sessionId, CreatedAt = DateTime.UtcNow });
         await _db.SaveChangesAsync();
         RewardShopState result = await state();
         await tx.CommitAsync();
@@ -102,7 +107,7 @@ public sealed class SessionRunService : ISessionRunService
     {
         await using IDbContextTransaction transaction = await _db.Database.BeginTransactionAsync();
         Session? session = await _db.Sessions.FromSqlInterpolated($"SELECT * FROM \"Sessions\" WHERE \"Id\" = {sessionId} AND \"UserId\" = {userId} FOR UPDATE").SingleOrDefaultAsync();
-        DateTime now = DateTime.UtcNow;
+        DateTime now = _clock.UtcNow(sessionId);
         if (session?.Status == SessionStatus.Completed)
         {
             return new(CompletionStatus.Completed, new SessionCompletion(session.PomosEarned));
@@ -139,7 +144,7 @@ public sealed class SessionRunService : ISessionRunService
             s.ActualStartTime == session.ActualStartTime && s.Duration == session.Duration)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Completed)
                 .SetProperty(x => x.PomosEarned, pomos)
-                .SetProperty(x => x.EndedAt, now));
+                .SetProperty(x => x.EndedAt, DateTime.UtcNow));
         if (updated == 0)
         {
             var completed = await _db.Sessions.AsNoTracking().SingleOrDefaultAsync(s =>
@@ -163,6 +168,7 @@ public sealed class SessionRunService : ISessionRunService
     private async Task ApplyStoredBreakAsync(Models.Session session, int userId, DateTime now)
     {
         if (session.Duration <= 25 || session.StoredBreakApplied ||
+            session.BreakExtensions.ElementAtOrDefault(0) > 0 ||
             session.ActualStartTime is null || now < session.ActualStartTime.Value.AddMinutes(25))
         {
             return;

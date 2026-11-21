@@ -114,6 +114,16 @@ Configure the API's `Cors__AllowedOrigins__0` with the exact HTTPS origin of the
 
 ## Progressive Web App (PWA)
 
+### Local session time controls
+
+Each break allows at most one five-minute extra, including a stored reward purchased from the rewards screen. The timer disables new purchases when the current break already has an extra or the balance is below the catalog price; the API enforces the same limit. An uncertain pending purchase also disables the purchase button. A separate confirmation button reuses its operation ID and does not buy a second extra. After success, new purchases remain disabled until the heartbeat confirms the updated session.
+
+`ng serve` and the local Docker Compose frontend expose **Advance 1 minute** and **Next block or break** controls in the timer. Start a session of at least 50 minutes and advance to its first break to test extra-break purchases without waiting 25 minutes. The API uses the same session-specific virtual time for heartbeats, break eligibility, stored breaks and completion; authentication, reminders and persisted timestamps still use real time.
+
+The API must run in `Development` with `DevelopmentTools:SessionClockEnabled` set to `true` (the development default). Production ignores this setting and refuses the test endpoint. Regular production and Cloudflare builds do not display these controls; Docker Compose explicitly selects `production,development-tools` for local use. Rebuild both services with `docker compose up --build -d api web` after these changes.
+
+Use only the local database: purchases spend real local pomos and completion awards them normally. The virtual offset survives page reloads but resets when the API restarts, without changing the session's original start time. Requests that advance time should not be retried automatically after a connection error; reload the timer to check the server's time first.
+
 The production build includes Angular's service worker and the web app manifest:
 
 - `public/manifest.webmanifest` defines the app name, standalone display mode, colors, and install icons.

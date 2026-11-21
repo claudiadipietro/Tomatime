@@ -141,6 +141,10 @@
     "back": "Volver al historial"
   },
   "timer": {
+    "testNotice": "Modo de prueba local: avanza el tiempo de esta sesión. Las compras y los pomos son reales en la base local.",
+    "testMinute": "Avanzar 1 minuto",
+    "testNextPhase": "Siguiente bloque o descanso",
+    "testAdvanceError": "No se pudo avanzar el tiempo. Comprueba que la API local tiene habilitado el reloj de prueba.",
     "title": "Sesión de concentración",
     "loading": "Preparando tu sesión…",
     "block": "🍅 Pomodoro {{current}} de {{total}}",

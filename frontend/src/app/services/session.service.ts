@@ -45,6 +45,10 @@ export class SessionService {
     return this.http.post<ActiveSession>(`/api/sessions/${id}/heartbeat`, {});
   }
 
+  advanceTestTime(id: number, seconds: number): Observable<ActiveSession> {
+    return this.http.post<ActiveSession>(`/api/testing/sessions/${id}/advance`, { seconds });
+  }
+
   cancel(id: number): Observable<void> {
     return this.http.post<void>(`/api/sessions/${id}/cancel`, {});
   }

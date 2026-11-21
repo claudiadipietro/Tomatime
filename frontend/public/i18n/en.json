@@ -141,6 +141,10 @@
     "back": "Back to history"
   },
   "timer": {
+    "testNotice": "Local test mode: advance this session's time. Purchases and pomos affect the local database.",
+    "testMinute": "Advance 1 minute",
+    "testNextPhase": "Next block or break",
+    "testAdvanceError": "Could not advance time. Check that the local API has its test clock enabled.",
     "title": "Focus session",
     "loading": "Preparing your session…",
     "block": "🍅 Pomodoro {{current}} of {{total}}",
