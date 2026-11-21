@@ -66,7 +66,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpGet("calendar")]
-    [HttpGet("/api/session-calendar")]
     public async Task<IActionResult> GetCalendar([FromQuery] DateTimeOffset? from, [FromQuery] DateTimeOffset? to)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -83,7 +82,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpGet("history")]
-    [HttpGet("/api/session-history")]
     public async Task<IActionResult> GetHistory()
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -95,7 +93,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpGet("history/{sessionId:int}")]
-    [HttpGet("/api/session-history/{sessionId:int}")]
     public async Task<IActionResult> GetHistoryItem(int sessionId)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -113,7 +110,8 @@ public class SessionController : ControllerBase
             ? StartSpontaneous(new StartSessionRequest { Duration = request.Duration })
             : Plan(new PlanSessionRequest { Duration = request.Duration, PlannedStartTime = request.PlannedStartTime });
 
-    [HttpPost("/api/session-plans")]
+
+    [NonAction]
     public async Task<IActionResult> Plan(PlanSessionRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -132,7 +130,7 @@ public class SessionController : ControllerBase
         };
     }
 
-    [HttpPost("/api/session-starts")]
+    [NonAction]
     public async Task<IActionResult> StartSpontaneous(StartSessionRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -152,7 +150,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("{sessionId:int}/start")]
-    [HttpPost("/api/session-starts/{sessionId:int}")]
     public async Task<IActionResult> StartPlanned(int sessionId)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -169,7 +166,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("{sessionId:int}/heartbeat")]
-    [HttpPost("/api/session-runs/{sessionId:int}/heartbeat")]
     public async Task<IActionResult> Heartbeat(int sessionId)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -182,7 +178,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("{sessionId:int}/cancel")]
-    [HttpPost("/api/session-runs/{sessionId:int}/cancel")]
     public async Task<IActionResult> Cancel(int sessionId)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -194,7 +189,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("{sessionId:int}/complete")]
-    [HttpPost("/api/session-runs/{sessionId:int}/complete")]
     public async Task<IActionResult> Complete(int sessionId)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
@@ -212,7 +206,6 @@ public class SessionController : ControllerBase
     }
 
     [HttpPost("{sessionId:int}/extra-break")]
-    [HttpPost("/api/session-runs/{sessionId:int}/extend-break")]
     public async Task<IActionResult> ExtendBreak(int sessionId, RewardPurchaseRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))

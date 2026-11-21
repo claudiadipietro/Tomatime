@@ -52,19 +52,6 @@ public class RewardController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("/api/reward-shop")]
-    public async Task<IActionResult> GetShop()
-    {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
-        {
-            return Unauthorized();
-        }
-
-        RewardShopState? state = await _shop.GetAsync(userId);
-        return state is null ? Unauthorized() : Ok(state);
-    }
-
-    [Authorize]
     [HttpPost("{rewardId:int}/redeem")]
     public Task<IActionResult> Redeem(int rewardId, RewardPurchaseRequest request)
     {
@@ -78,9 +65,7 @@ public class RewardController : ControllerBase
         return kind is null ? Task.FromResult<IActionResult>(BadRequest(new { message = "Invalid reward action." })) : Purchase(kind, request);
     }
 
-    [Authorize]
-    [HttpPost("/api/reward-shop/{kind}/purchase")]
-    public async Task<IActionResult> Purchase(string kind, RewardPurchaseRequest request)
+    private async Task<IActionResult> Purchase(string kind, RewardPurchaseRequest request)
     {
         if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
         {
@@ -88,18 +73,6 @@ public class RewardController : ControllerBase
         }
 
         return Map(await _shop.PurchaseAsync(userId, kind, request.OperationId));
-    }
-
-    [Authorize]
-    [HttpPost("/api/reward-shop/themes/{theme}/activate")]
-    public async Task<IActionResult> ActivateTheme(string theme)
-    {
-        if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out int userId))
-        {
-            return Unauthorized();
-        }
-
-        return Map(await _shop.ActivateAsync(userId, theme));
     }
 
     private IActionResult Map(RewardActionResult result) => result.Status switch
