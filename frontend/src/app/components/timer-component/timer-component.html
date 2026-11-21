@@ -33,10 +33,28 @@
       }
     </div>
     <p>{{ 'timer.reward' | translate: { count: blocks() * 2 } }}</p>
+    @if (testToolsEnabled) {
+      <aside class="test-tools">
+        <p>{{ 'timer.testNotice' | translate }}</p>
+        <button class="cancel" type="button"
+          [disabled]="advancing() || extending() || cancellationPending()"
+          (click)="advanceTestTime()">{{ 'timer.testMinute' | translate }}</button>
+        <button class="cancel" type="button"
+          [disabled]="advancing() || extending() || cancellationPending()"
+          (click)="advanceTestTime(true)">{{ 'timer.testNextPhase' | translate }}</button>
+      </aside>
+    }
     @if (isBreak() || pendingExtension) {
-      <button class="primary" type="button" [disabled]="extending() || (!pendingExtension && (session()!.pomoBalance < session()!.extraBreakCost))" (click)="extendBreak()">
-        {{ (pendingExtension ? 'rewards.retryPurchase' : 'rewards.extendBreak') | translate: { count: session()!.extraBreakCost } }}
+      <button class="primary" type="button" [disabled]="extending() || advancing() || cancellationPending() || pendingExtension || !canExtendBreak()" (click)="extendBreak()">
+        {{ 'rewards.extendBreak' | translate: { count: session()!.extraBreakCost } }}
       </button>
+      @if (pendingExtension) {
+        <button class="cancel" type="button"
+          [disabled]="extending() || advancing() || cancellationPending()"
+          (click)="confirmPendingExtension()">
+          {{ 'rewards.retryPurchase' | translate }}
+        </button>
+      }
     }
     <p class="leave-notice">{{ 'timer.leaveNotice' | translate }}</p>
     @if (error()) {

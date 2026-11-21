@@ -46,9 +46,23 @@
               "serviceWorker": "ngsw-config.json"
             },
             "development": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/session-test-tools.ts",
+                  "with": "src/app/config/session-test-tools.development.ts"
+                }
+              ],
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "development-tools": {
+              "fileReplacements": [
+                {
+                  "replace": "src/app/config/session-test-tools.ts",
+                  "with": "src/app/config/session-test-tools.development.ts"
+                }
+              ]
             },
             "cloudflare": {
               "fileReplacements": [

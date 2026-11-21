@@ -19,6 +19,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+builder.Services.AddSingleton(new SessionTestClock(
+    builder.Environment.IsDevelopment() &&
+    builder.Configuration.GetValue<bool>("DevelopmentTools:SessionClockEnabled")));
 builder.Services.AddSingleton<ReminderWakeup>();
 builder.Services.AddSingleton<PasswordResetEmailQueue>();
 builder.Services.AddSingleton<IWebPushSender, WebPushSender>();

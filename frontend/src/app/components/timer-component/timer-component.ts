@@ -17,6 +17,7 @@ import { AuthSessionService } from '../../services/auth-session.service';
 import { ActiveSession, SessionService } from '../../services/session.service';
 import { MainHeaderComponent } from '../main-header-component/main-header-component';
 import { RewardOperationService } from '../../services/reward-operation.service';
+import { sessionTestToolsEnabled } from '../../config/session-test-tools';
 
 @Component({
   selector: 'app-timer',
@@ -47,6 +48,9 @@ export class TimerComponent {
   readonly error = signal<string | null>(null);
   readonly earned = signal(0);
   readonly extending = signal(false);
+  private readonly extensionRefreshPending = signal(false);
+  readonly testToolsEnabled = sessionTestToolsEnabled;
+  readonly advancing = signal(false);
   get pendingExtension(): boolean {
     return this.operations.hasPending(`session.${this.id}.extra-break`);
   }
@@ -79,6 +83,13 @@ export class TimerComponent {
     return { block: blocks, isBreak: false, end: start };
   });
   readonly isBreak = computed(() => this.phase().isBreak);
+  readonly canExtendBreak = computed(() => {
+    const session = this.session();
+    return this.state() === 'active' && this.isBreak() && session !== null &&
+      !this.extensionRefreshPending() &&
+      (session.breakExtensions[this.block() - 1] ?? 0) === 0 &&
+      session.pomoBalance >= session.extraBreakCost;
+  });
   readonly block = computed(() => this.phase().block);
   readonly blocks = computed(() => (this.session()?.duration ? this.session()!.duration / 25 : 0));
   readonly remaining = computed(() => {
@@ -122,7 +133,7 @@ export class TimerComponent {
   }
 
   private heartbeat(): void {
-    if (this.state() === 'completed' || this.state() === 'ended' || this.leaving) return;
+    if (this.state() === 'completed' || this.state() === 'ended' || this.leaving || this.advancing()) return;
     const sequence = ++this.heartbeatSequence;
     this.sessions
       .heartbeat(this.id)
@@ -131,15 +142,7 @@ export class TimerComponent {
         next: (session) => {
           if (sequence !== this.heartbeatSequence || this.state() === 'completed' || this.state() === 'ended' || this.leaving) return;
           if (Date.parse(session.serverTime) < this.serverAtSync) return;
-          this.syncing = false;
-          this.serverAtSync = Date.parse(session.serverTime);
-          this.monotonicAtSync = performance.now();
-          this.now.set(this.serverAtSync);
-          this.session.set(session);
-          this.state.set('active');
-          this.error.set(null);
-          this.wasBreak = this.isBreak();
-          this.tick();
+          this.applySession(session);
         },
         error: (error: HttpErrorResponse) => {
           if (sequence !== this.heartbeatSequence || this.completing || this.leaving || this.state() === 'completed' || this.state() === 'ended') return;
@@ -153,8 +156,40 @@ export class TimerComponent {
       });
   }
 
+  private applySession(session: ActiveSession): void {
+    this.extensionRefreshPending.set(false);
+    this.syncing = false;
+    this.serverAtSync = Date.parse(session.serverTime);
+    this.monotonicAtSync = performance.now();
+    this.now.set(this.serverAtSync);
+    this.session.set(session);
+    this.state.set('active');
+    this.error.set(null);
+    this.wasBreak = this.isBreak();
+    this.tick();
+  }
+
+  advanceTestTime(nextPhase = false): void {
+    if (!this.testToolsEnabled || this.advancing() || this.extending() ||
+        this.cancellationPending() || this.state() !== 'active') return;
+    const seconds = nextPhase ? Math.max(1, this.phase().end - this.elapsed()) : 60;
+    this.advancing.set(true);
+    const sequence = ++this.heartbeatSequence;
+    this.sessions.advanceTestTime(this.id, seconds)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.advancing.set(false)))
+      .subscribe({
+        next: (session) => {
+          if (sequence !== this.heartbeatSequence || this.leaving ||
+              this.state() !== 'active') return;
+          this.advancing.set(false);
+          this.applySession(session);
+        },
+        error: () => this.error.set('timer.testAdvanceError'),
+      });
+  }
+
   private tick(): void {
-    if (this.state() !== 'active' || this.syncing || document.hidden) return;
+    if (this.state() !== 'active' || this.syncing || this.advancing() || document.hidden) return;
     this.now.set(this.serverAtSync + (performance.now() - this.monotonicAtSync));
     const inBreak = this.isBreak();
     const enteredBreak = inBreak && !this.wasBreak;
@@ -164,13 +199,27 @@ export class TimerComponent {
   }
 
   extendBreak(): void {
-    if (this.extending() || (!this.isBreak() && !this.pendingExtension)) return;
+    if (this.pendingExtension || !this.canExtendBreak()) return;
+    this.submitExtension();
+  }
+
+  confirmPendingExtension(): void {
+    if (!this.pendingExtension) return;
+    this.submitExtension();
+  }
+
+  private submitExtension(): void {
+    if (this.state() !== 'active' || this.extending() || this.advancing() ||
+        this.cancellationPending()) return;
     this.extending.set(true);
     this.error.set(null);
     this.operations.run(`session.${this.id}.extra-break`, (id) => this.sessions.extendBreak(this.id, id))
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.extending.set(false)))
       .subscribe({
-        next: () => this.heartbeat(),
+        next: () => {
+          this.extensionRefreshPending.set(true);
+          this.heartbeat();
+        },
         error: (error: HttpErrorResponse) =>
           this.error.set(error.status === 409 ? 'rewards.insufficient' : 'rewards.actionError'),
       });
