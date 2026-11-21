@@ -94,7 +94,7 @@ public sealed class SessionRunService : ISessionRunService
 
     public async Task<bool> CancelAsync(int userId, int sessionId) =>
         await _db.Sessions.Where(s => s.Id == sessionId && s.UserId == userId &&
-                                     s.Status == SessionStatus.InProgress)
+                                     (s.Status == SessionStatus.Planned || s.Status == SessionStatus.InProgress))
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SessionStatus.Cancelled)
                 .SetProperty(x => x.EndedAt, DateTime.UtcNow)) != 0;
 
