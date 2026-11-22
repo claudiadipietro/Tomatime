@@ -1,5 +1,11 @@
 # Tomatime
 
+## Utilizar la aplicación desplegada
+
+Se puede utilizar la aplicación desplegada en el [siguiente enlace](https://tomatime-5x2.pages.dev/).
+
+Sin embargo, para compilar la aplicación en local, se deben seguir los siguientes pasos.
+
 ## Ejecutar con Docker
 
 Esta configuración es para **uso local**, por ejemplo para probar el proyecto. Inicia el frontend, la API y una base de datos PostgreSQL independiente de cualquier base de datos de Aspire que ya exista.
@@ -26,11 +32,11 @@ No es necesario instalar Node.js, .NET ni PostgreSQL en el ordenador para ejecut
    openssl rand -hex 32
    ```
 
-   Se debe copiar el primer resultado en `POSTGRES_PASSWORD` y el segundo en `JWT_KEY`, sin espacios ni comillas. Si no se tiene `openssl`, se pueden generar dos cadenas aleatorias hexadecimales seguras por otro medio.
+   Se debe copiar el primer resultado en `POSTGRES_PASSWORD` y el segundo en `JWT_KEY`, sin espacios ni comillas. Si no se tiene `openssl`, se pueden generar dos cadenas aleatorias hexadecimales seguras por otro medio (por ejemplo, [en el siguiente enlace](https://randomkeygen.com/openssl-rand-hex).
 
-3. Para que funcione la recuperación de contraseña, se debe rellenar también `GMAIL_ADDRESS` y `GMAIL_APP_PASSWORD` con una cuenta de Gmail y su contraseña de aplicación (no la contraseña del Gmail, sino la contraseña de aplicación, que se puede obtener en [el siguiente enlace](https://myaccount.google.com/u/1/apppasswords)). La contraseña de aplicación se debe poner sin espacios. Si quedan los valores vacíos, la aplicación arranca, pero **no enviará correos**.
+3. Opcional - Para que funcione la recuperación de contraseña, se debe rellenar también `GMAIL_ADDRESS` y `GMAIL_APP_PASSWORD` con una cuenta de Gmail y su contraseña de aplicación (no la contraseña del Gmail, sino la contraseña de aplicación, que se puede obtener en [el siguiente enlace](https://myaccount.google.com/u/1/apppasswords)). La contraseña de aplicación se debe poner sin espacios. Si quedan los valores vacíos, la aplicación arranca, pero **no enviará correos**.
 
-4. Para habilitar notificaciones push, se debe rellenar `WEBPUSH_PUBLIC_KEY`, `WEBPUSH_PRIVATE_KEY` y `WEBPUSH_SUBJECT`. Se pueden generar un par de llaves con `npx web-push generate-vapid-keys` desde un entorno con Node.js; el asunto debe ser un contacto `mailto:` o una URL HTTPS (por ejemplo, mailto:ejemplo@gmail.com). Si los campos están vacíos, la aplicación arranca, pero no se podrán activar las notificaciones.
+4. Opcional - Para habilitar notificaciones push, se debe rellenar `WEBPUSH_PUBLIC_KEY`, `WEBPUSH_PRIVATE_KEY` y `WEBPUSH_SUBJECT`. Se pueden generar un par de llaves con `npx web-push generate-vapid-keys` desde un entorno con Node.js; el asunto debe ser un contacto `mailto:` o una URL HTTPS (por ejemplo, mailto:ejemplo@gmail.com). Si los campos están vacíos, la aplicación arranca, pero no se podrán activar las notificaciones.
 
 ### Inicio y parada
 
